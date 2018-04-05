@@ -201,20 +201,20 @@ model_selection = function(mimu, model, s_est = NULL,
   model_hat = model_nested[[mod_selected_cvwvic]]
   }
 
-  # Put the decision rule in model object
+   # Put the decision rule in model object
   for (i in 1:n_models){
     if(length(index_select_wilcox_list) != 1){
-      if(i = model_select_wilcox){
+      if(i == model_select_wilcox){
         model_nested[[i]]$decision = "Model selected"
-      }else if (i = index_equivalent_model & i != mod_selected_cvwvic){
+      }else if (i == index_equivalent_model & i != mod_selected_cvwvic){
         model_nested[[i]]$decision = "Bigger equivalent model"
-      }else if (i != index_equivalent_model & i = mod_selected_cvwvic){
+      }else if (i == mod_selected_cvwvic){
         model_nested[[i]]$decision = "Model selected cvwvic"
       }else{
         model_nested[[i]]$decision = "Model not appropriate"
       }
     }else{
-      if(i = mod_selected_cvwvic){
+      if(i == mod_selected_cvwvic){
         model_nested[[i]]$decision = "Model selected cvwvic"
       }else{
         model_nested[[i]]$decision = "Model not appropriate"
@@ -222,30 +222,35 @@ model_selection = function(mimu, model, s_est = NULL,
     }
   }
 
+  ## Create the ouput for the selected model
+  estimate = as.matrix(model_hat$theta)
+  rownames(estimate) = model_hat$process.desc
+  colnames(estimate) = "Estimates"
 
-}
+  # Selected model objective function value
+  obj_value = model_hat$obj_value
+  names(obj_value) = "Value Objective Function"
 
 
+  # WV implied by the parameter
+  wv_implied = wv_theo(model_hat, tau_max_vec)
 
-for (i in 1:n_models){
-  if(length(index_select_wilcox_list) != 1){
-    if(i = model_select_wilcox){
-      model_nested[[i]]$decision = "Model selected"
-    }else if (i = index_equivalent_model & i != mod_selected_cvwvic){
-      model_nested[[i]]$decision = "Bigger equivalent model"
-    }else if (i != index_equivalent_model & i = mod_selected_cvwvic){
-      model_nested[[i]]$decision = "Model selected cvwvic"
-    }else{
-      model_nested[[i]]$decision = "Model not appropriate"
-    }
-  }else{
-    if(i = mod_selected_cvwvic){
-      model_nested[[i]]$decision = "Model selected cvwvic"
-    }else{
-      model_nested[[i]]$decision = "Model not appropriate"
-    }
+  # Extact individual model for theoretical decomposition
+  desc_decomp_theo = desc_decomp_theo_fun(model_hat, n_process)
+
+
+  # Compute individual theoretical wv
+  decomp_theo = list()
+  for (i in 1:n_process){
+    decomp_theo[[i]] =  wv_theo(desc_decomp_theo[[i]], tau_max_vec)
   }
+
+
 }
+
+
+
+
 
 
 
