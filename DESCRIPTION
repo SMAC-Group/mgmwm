@@ -1,6 +1,6 @@
 Package: mgmwm2
 Type: Package
-Title: What the Package Does (Title Case)
+Title: What the Package Does (Title Case) FIX THIS
 Version: 0.1.0
 Authors@R: c(
     person("Gaetan", "Bakalli", email = "gaetan.bakalli@unige.ch", role = c("aut","cre")),
@@ -8,17 +8,19 @@ Authors@R: c(
     person("Ahmed", "Radi", role = "ctb")
     )
 Maintainer: Gaetan Bakalli <gaetan.bakalli@unige.ch>
-Description: More about what it does (maybe more than one line)
+Description: FIX THIS More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 Depends: R (>= 3.1.0)
 License: CC BY-NC-SA 4.0
 Imports:
+    simts,
     methods,
     stats,
     utils, 
     scales, 
     grDevices, 
     graphics,
+    wv,
     gmwm,
     shiny,
     shinyjs,

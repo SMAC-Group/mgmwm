@@ -5,6 +5,9 @@ is.mimu = function(obj){class(obj) == "mimu"}
 is.mgmwm = function(obj){class(obj) == "mgmwm"}
 
 #' @export
+is.cvwvic = function(obj){class(obj) == "cvwvic"}
+
+#' @export
 is.tsmodel = function(obj){class(obj) == "ts.model"}
 
 #' @export

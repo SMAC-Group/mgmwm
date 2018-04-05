@@ -1,6 +1,7 @@
 
 
 #' @export
+#' @import progress
 model_selection = function(mimu, model, s_est = NULL,
                            paired_test = FALSE,
                            alpha_paired_test = NULL, seed = 2710){
@@ -39,7 +40,6 @@ model_selection = function(mimu, model, s_est = NULL,
 
   #Number of nested model
   n_models = length(model_nested)
-
 
   # Extract tau max
   length_tau = rep(NA,n_replicates)
@@ -167,17 +167,22 @@ model_selection = function(mimu, model, s_est = NULL,
     }
   }
   # Decision rule on which model is equivalent
-  test_wilcox_result = (wilcox_test > alpha_paired_test)
+  test_wilcox_result = wilcox_test > alpha_paired_test
 
-  # Index of model in "model_nested" which is equivalent to mod_selected_cvwvic
-  index_select_wilcox_list = which(test_wilcox_result[1:n_models] == TRUE)
+  min_mod = mod_selected_cvwvic
+  equiv_mod = which(test_wilcox_result)
+  smallest_equiv = (min(model_complexity[test_wilcox_result]) == model_complexity) & test_wilcox_result
+  if (sum(smallest_equiv) > 1){
+    smallest_equiv = (min(cv_wvic[smallest_equiv]) == cv_wvic) & smallest_equiv
+  }
+  smallest_equiv = which(smallest_equiv)
 
   # If index_select_wilcox_list has multiple model, select the smallest one
-  if(length(index_select_wilcox_list) != 1){
+  if(sum(test_wilcox_result) > 1){
 
     # Select equivalent models (0 means not equivalent)
     equivalent_models = model_complexity*test_wilcox_result
-    index_equivalent_model  = which(equivalent_models != 0)
+    index_equivalent_model = which(equivalent_models != 0)
     equivalent_models[equivalent_models == 0] = NA
 
     # model complexity of the smallest one
@@ -203,7 +208,7 @@ model_selection = function(mimu, model, s_est = NULL,
 
    # Put the decision rule in model object
   for (i in 1:n_models){
-    if(length(index_select_wilcox_list) != 1){
+    if(sum(test_wilcox_result) > 1){
       if(i == model_select_wilcox){
         model_nested[[i]]$decision = "Model selected"
       }else if (i == index_equivalent_model & i != mod_selected_cvwvic){

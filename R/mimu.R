@@ -16,23 +16,24 @@
 
 #' @title Creates a Multivariate IMU object.
 #'
-#' @description This function creates a Multivariate IMU objects, combining multiple replicates of the
+#' @description This function creates a multivariate IMU or MIMU object, combining multiple replicates of the
 #' same inertial sensor.
 #' @param ... A \code{list} of \code{vector} reprenting multiple error signals from IMU
 #' @param freq A \code{numeric} value with frequency of IMU.
 #' @param units A \code{string} value with unit of IMU.
 #' @param sensor.name A \code{string} with name of IMU.
-#' @param exp.name A \code{vector} with the nemane
-#' @author Stephane Guerrier
+#' @param exp.name A \code{vector} with the experiment name
+#' @author Gaetan Bakalli and Stephane Guerrier
+#' @importFrom wv wvar
 #' @export
 #' @examples
 #' n = 10^6
 #' Xt = rnorm(n/4)
 #' Yt = rnorm(n/2) + cumsum(rnorm(n/2, 0, 10^(-2)))
 #' Zt = rnorm(n) + cumsum(rnorm(n, 0, 10^(-3)))
-#' obj = make_wvar_mimu_obj(Xt, Yt, Zt, freq = 100, unit = "s",
+#' obj = make_mimu(Xt, Yt, Zt, freq = 100, unit = "s",
 #' sensor.name = "MTiG - Gyro. X", exp.name = c("today", "yesterday", "a few days ago"))
-make_wvar_mimu_obj = function(..., freq, unit = NULL, sensor.name = NULL, exp.name = NULL, for_test = NULL){
+make_mimu = function(..., freq, unit = NULL, sensor.name = NULL, exp.name = NULL, for_test = NULL){
 
   if (is.null(for_test)){
     obj_list = list(...)
@@ -43,7 +44,7 @@ make_wvar_mimu_obj = function(..., freq, unit = NULL, sensor.name = NULL, exp.na
   obj_len  = length(obj_list)
   obj = list()
     for (i in 1:obj_len){
-      inter = wvar(obj_list[[i]])
+      inter = wv::wvar(obj_list[[i]])
       inter$scales = inter$scales/freq
       inter$tau =  2^(1:length(inter$scales))
       obj[[i]] = c(data = list(obj_list[[i]]),inter, N = length(obj_list[[i]]))
@@ -100,18 +101,16 @@ make_wvar_mimu_obj = function(..., freq, unit = NULL, sensor.name = NULL, exp.na
 #' @param transparency_ci  An \code{integer} that specifies the tranparency for the wavelet variance confidence intervals.
 #' @param transparency_wv  An \code{integer} that specifies the tranparency for the wavelet variance lines.
 #' @return Plot of wavelet variances and confidence intervals for each scale.
-#' @author Stephane Guerrier, Nathanael Claussen, and Justin Lee
+#' @author Stephane Guerrier, Nathanael Claussen, Gaetan Bakalli and Justin Lee
+#' @import wv
 #' @export
 #' @examples
 #' Xt = rnorm(n/4)
 #' Yt = rnorm(n/2) + cumsum(rnorm(n/2, 0, 10^(-2)))
 #' Zt = rnorm(n) + cumsum(rnorm(n, 0, 10^(-3)))
-#' obj = make_wvar_mimu_obj(Xt, Yt, Zt, freq = 100, unit = "s",
+#' obj = make_mimu(Xt, Yt, Zt, freq = 100, unit = "s",
 #' sensor.name = "MTiG - Gyro. X", exp.name = c("today", "yesterday", "a few days ago"))
 #' plot(obj, split_plot = FALSE)
-
-
-#' @export
 plot.mimu = function(obj_list, split_plot = FALSE, add_legend = TRUE, xlab = NULL,
                         ylab = NULL, col_wv = NULL, col_ci = NULL, nb_ticks_x = NULL,
                         nb_ticks_y = NULL, legend_position = "bottomleft", ci_wv = NULL, point_cex = NULL,
@@ -123,17 +122,17 @@ plot.mimu = function(obj_list, split_plot = FALSE, add_legend = TRUE, xlab = NUL
   main = attr(obj_list, "sensor.name")
 
   # Check if passed objects are of the class mimu
-  #is_mimu = class(obj_list)
-  #if(!(is_mimu == T)){
-  #  stop("Supplied object must be 'mimu' objects.")
-  #}
+  is_mimu = class(obj_list)
+  if(!(is_mimu == "mimu")){
+    stop("Supplied object must be 'mimu' objects.")
+  }
 
   # Check length of time series argument
   if (obj_len == 0){
     stop('No object given!')
   }else if (obj_len == 1){
     # -> plot.wvar
-    plot.wvar(..., nb_ticks_x = nb_ticks_x, nb_ticks_y = nb_ticks_y)
+    wv::plot.wvar(..., nb_ticks_x = nb_ticks_x, nb_ticks_y = nb_ticks_y)
   }else{
 
     if (is.null(xlab)){
@@ -322,16 +321,13 @@ plot.mimu = function(obj_list, split_plot = FALSE, add_legend = TRUE, xlab = NUL
 #' #' Xt = rnorm(n/4)
 #' Yt = rnorm(n/2) + cumsum(rnorm(n/2, 0, 10^(-2)))
 #' Zt = rnorm(n) + cumsum(rnorm(n, 0, 10^(-3)))
-#' obj = make_wvar_mimu_obj(Xt, Yt, Zt, freq = 100, unit = "s",
+#' obj = make_mimu(Xt, Yt, Zt, freq = 100, unit = "s",
 #' sensor.name = "MTiG - Gyro. X", exp.name = c("today", "yesterday", "a few days ago"))
 #' model = AR1() + WN()
 #'
 #' Extract the scales of first replicates of mimu \code{object} and compute tau
 #' tau = mimu[[1]]$tau
 #' wv_theo = function(model, tau)
-
-
-
 wv_theo = function(model, tau){
   if (!class(model) == "ts.model"){
     # Error

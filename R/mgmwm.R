@@ -94,6 +94,7 @@
 #'   \item{"RW"}{a random walk process with parameter \eqn{\sigma^2}{sigma^2}}
 #'   \item{"WN"}{a white noise process with parameter \eqn{\sigma^2}{sigma^2}}
 #' }
+#' @import gmwm
 #' @examples
 #' # AR
 #' set.seed(1336)
@@ -127,40 +128,51 @@ mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max 
   # Not estimate the model if provide an "mgmwm" of "cvwvic" object.
   if(is.mimu(mimu)){
     new_estimation = TRUE
+    if (is.null(model)){
+      stop("No available model with `mimu` object of class `mimu`.")
+    }
   }else{
-    new_estimation = FALSE
+    if (is.null(model)){
+      new_estimation = FALSE
+
+      if(is.mgmwm(mimu) || is.cvwvic(mimu)){
+        model_hat = mimu$model_hat
+        mimu = mimu$mimu
+      }else{
+        stop("`mimu` must be created from a `mgmwm` or a `cvwvic` object since no model is provided. ")
+      }
+
+    }else{
+      if(is.tsmodel(model)){
+        if ((all(mimu$model_hat$desc == model$desc)) && (length(model$desc) == length(mimu$model_hat$desc))){
+          new_estimation = FALSE
+          model_hat = mimu$model_hat
+        }else{
+          new_estimation = TRUE
+        }
+      }else{
+        stop("Incorrect inputs: `mimu` must be created from a `mimu`, `mgmwm` or a `cvwvic` object;
+             `model` must be created from a `ts.model` object using a supported component (e.g. AR1(),
+             ARMA(p,q), DR(), RW(), QN(), and WN().")
+      }
+
+      if(is.mgmwm(mimu) || is.cvwvic(mimu)){
+        mimu = mimu$mimu
+      }else if (!is.mimu(mimu)){
+        stop("No `mimu` object provided.")
+      }
+    }
   }
+
 
   ##### case where mimu == mgmwm of cvwvic model is a specific model
   # a) mgmwm : warning we fit the new one
   # b) cvwvic: check if estimated previously. Y-> extract info N-> estrimate the model
 
-  # Attribute objects if mimu is of class "mgmwm" or "cvwvic"
-  if (!is.null(model)){
-    if(class(mimu) == "mgmwm" || class(mimu) == "cvwvic" ){
-      mimu = mimu$mimu
-    }else if (!class(mimu) == "mimu"){
-      stop("No `mimu` object provided.")
-    }
-  }else{
-    if(class(mimu) == "mgmwm" || class(mimu) == "cvwvic" ){
-      model = mimu$model_hat
-      mimu = mimu$mimu
-    }else{
-      stop("`mimu` must be created from a `mimu`, `mgmwm` or a `cvwvic` object. ")
-    }
-  }
-
-  # Check if model is a valid object
-  if(!is.tsmodel(model)){
-    stop("`model` must be created from a `ts.model` object using a supported component (e.g. AR1(), ARMA(p,q), DR(), RW(), QN(), and WN(). ")
-  }
-
   # Check if mimu is a valid object
-  #if(!is.mimu(mimu)){
-  #  stop("`mimu` must be created from a `mimu` object. ")
-  #}
-
+  if(!is.mimu(mimu)){
+    stop("No available `mimu` object. ")
+  }
 
   # Set default value for alpha of confidence intervals.
   if(is.null(alpha_ci)){
@@ -271,15 +283,12 @@ mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max 
     # Transform the parameter
     model_hat$theta = param_transform(model_hat,model_hat$theta)
   }else{
-    model_hat = model
-
     # Number of latent pocesses in model
     n_process = length(model_hat$desc)
 
     # Number of parameters in model
     np = model_hat$plength
   }
-
   # Perform the near-stationarity test
   if(stationarity_test == TRUE){
 
@@ -287,9 +296,9 @@ mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max 
                                      seed = seed, B_stationarity_test = B_stationarity_test)
     # decision rules from the test
     if(p_value >= alpha_near_test){
-      test_res = " Data are stationary"
+      test_res = "Data are stationary"
     }else{
-      test_res = " Data are nearly-stationary"
+      test_res = "Data are nearly-stationary"
     }
   }else{
     test_res = "Near-stationarity test not computed. Set `stationarity_test = TRUE`"
@@ -331,7 +340,6 @@ mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max 
 
   # Extact individual model for theoretical decomposition
   desc_decomp_theo = desc_decomp_theo_fun(model_hat, n_process)
-
 
   # Compute individual theoretical wv
   decomp_theo = list()
@@ -436,6 +444,7 @@ near_stationarity_test = function(mimu = mimu, model_hat = model_hat,
   p_value = sum(distrib_H0 >= model_hat$theta)/B_stationarity_test
 }
 
+#' @import iterpc
 ci_mgmwm = function(model_hat = model_hat, mimu = mimu,
                     n_boot_ci_max = n_boot_ci_max, n_replicates, seed = seed){
 
@@ -444,7 +453,7 @@ ci_mgmwm = function(model_hat = model_hat, mimu = mimu,
   # Set up starting value in model to false
   model_hat$starting = TRUE
 
-  I = iterpc(n_replicates, n_replicates, replace = TRUE)
+  I = iterpc::iterpc(n_replicates, n_replicates, replace = TRUE)
   perm = getall(I)
   n_permutation = dim(perm)[1]
 
