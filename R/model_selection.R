@@ -8,8 +8,6 @@ model_selection = function(mimu, model, s_est = NULL,
   # Level of confidence for Wilcoxon paired test
   if(is.null(alpha_paired_test)){
     alpha_paired_test = .05
-  }else{
-    alpha_paired_test = alpha_paired_test
   }
 
   # Number of replicates
@@ -18,8 +16,6 @@ model_selection = function(mimu, model, s_est = NULL,
   # Number of time series replicates for estimation
   if(is.null(s_est)){
     s_est = ceiling(n_replicates/2)
-  }else{
-    s_est = s_est
   }
 
   # Number of time series replicates for validation
@@ -237,7 +233,7 @@ model_selection = function(mimu, model, s_est = NULL,
   names(obj_value) = "Value Objective Function"
 
   # Transform the parameter
-  model_hat$theta = param_transform(model_hat,model_hat$theta)
+  #model_hat$theta = param_transform(model_hat,model_hat$theta)
 
   # WV implied by the parameter
   model_hat$wv_implied = wv_theo(model_hat, tau_max_vec)
@@ -264,35 +260,39 @@ model_selection = function(mimu, model, s_est = NULL,
                                   model_name = model_name,
                                   scales_max_vec = scales_max_vec,
                                   obj_out_sample = obj_out_sample,
-                                  mimu = mimu), class = "mgmwm")
+                                  mimu = mimu), class = "cvwvic")
   invisible(out_model_selection)
 
 }
 
 
 #' @export
-plot.cvwvic = function(obj_list, decomp = NULL, model_plot = NULL,
+plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
                        add_legend_mgwmw = TRUE, legend_pos = NULL,
-                       ylab_cvwvic = NULL){
+                       ylab_cvwvic = NULL, couleur_axis = FALSE){
 
   n_models = length(obj_list$model_nested)
 
-  if (is.null(model_plot)){
-    model_plot = "selected"
+  if (is.ts.model(model)){
+    if (!is.null(type)){
+      warning("type set to NULL.")
+    }
+    type = NULL
+    model_name = model_names(model)
+
+    if (sum(obj_list$model_name %in% model_name) == 0){
+      stop("This model has not been estimated. Use this model has an input of the `model_selection` fuction.")
+    }
+
+    index_model = which(obj_list$model_name %in% model_name)
   }else{
-    model_plot = model_plot
+    if (is.null(type)){
+      type = "selected"
+    }
   }
 
   if (is.null(ylab_cvwvic)){
     ylab = expression(paste("Wavelet Variance ", nu^2, sep = ""))
-  }else{
-    ylab = ylab_cvwvic
-  }
-
-  if (decomp == FALSE){
-    decomp = FALSE
-  }else{
-    decomp = TRUE
   }
 
   obj_plot = list()
@@ -305,49 +305,151 @@ plot.cvwvic = function(obj_list, decomp = NULL, model_plot = NULL,
   # Extract index of equivalent model
   index_equiv = which(obj_list$selection_decision == "Model selected" | obj_list$selection_decision == "Model selected cv-wvic" | obj_list$selection_decision == "Bigger equivalent model")
 
-
-  if(model_plot == "selected"){
-    plot.mgmwm(obj_plot[[which(obj_list$selection_decision == "Model selected")]], decomp = decomp,
-               add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = NULL)
-    title(main = "Model selected")
-
-  }else if((model_plot == "cvwvic")){
-    plot.mgmwm(obj_plot[[which(obj_list$selection_decision == "Model selected cv-wvic")]],
-               decomp = decomp,add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = NULL)
-    title(main = "Model selected cv-wvic")
-
-  }else if(model_plot == "equivalent"){
-    decomp = FALSE
-
-    index_equiv = which(obj_list$selection_decision == "Model selected" | obj_list$selection_decision == "Model selected cv-wvic" | obj_list$selection_decision == "Bigger equivalent model")
-
-    plot(obj_plot[[1]]$mimu, add_legend = FALSE, transparency_wv = 0.4, transparency_ci = 0.05, ylab = ylab)
-
-    U = length(index_equiv)
-    col_wv = hcl(h = seq(100, 375, length = U + 1), l = 65, c = 200, alpha = 1)[1:U]
-    legend_names = rep(NA,length(index_equiv))
-    col_legend = rep(NA,length(index_equiv))
-    for (i in 1:length(index_equiv)){
-      # Plot implied WV
-      lines(t(obj_list$scales_max_vec),obj_plot[[index_equiv[i]]]$model_hat$wv_implied, type = "l", lwd = 3, col = col_wv[[i]], pch = 1, cex = 1.5)
-      lines(t(obj_list$scales_max_vec),obj_plot[[index_equiv[i]]]$model_hat$wv_implied, type = "p", lwd = 2, col = col_wv[[i]], pch = 1, cex = 1.5)
-
-      legend_names[i] = obj_list$model_name[index_equiv[i]]
-      col_legend[i] = col_wv[i]
-      p_cex_legend = rep(c(1.5,NA),length(obj_list$wv_implied))
-
-      if (is.null(legend_pos)){
-        legend_pos = "bottomleft"
+  if (!is.null(type)){
+    if(type == "selected"){
+      plot.mgmwm(obj_plot[[which(obj_list$selection_decision == "Model selected")]], decomp = decomp,
+                 add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = NULL)
+      title(main = "Model selected")
+    }else if((type == "cvwvic")){
+      if (sum((obj_list$selection_decision %in% "Model selected cv-wvic")) == 1){
+        compare_to = "Model selected cv-wvic"
+      }else{
+        compare_to = "Model selected"
       }
-      if (add_legend_mgwmw == TRUE){
-        legend(legend_pos, legend_names, bty = "n", lwd = 1, pt.cex = 1.5, pch = p_cex_legend, col = col_legend)
+      plot.mgmwm(obj_plot[[which(obj_list$selection_decision == compare_to)]],
+                 decomp = decomp,add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = NULL)
+      title(main = compare_to)
+
+    }else if(type == "equivalent"){
+      decomp = FALSE
+
+      index_equiv = which(obj_list$selection_decision == "Model selected" | obj_list$selection_decision == "Model selected cv-wvic" | obj_list$selection_decision == "Bigger equivalent model")
+
+      plot(obj_plot[[1]]$mimu, add_legend = FALSE, transparency_wv = 0.4, transparency_ci = 0.05, ylab = ylab)
+
+      U = length(index_equiv)
+      col_wv = hcl(h = seq(100, 375, length = U + 1), l = 65, c = 200, alpha = 1)[1:U]
+      legend_names = rep(NA,length(index_equiv))
+      col_legend = rep(NA,length(index_equiv))
+      for (i in 1:length(index_equiv)){
+        # Plot implied WV
+        lines(t(obj_list$scales_max_vec),obj_plot[[index_equiv[i]]]$model_hat$wv_implied, type = "l", lwd = 3, col = col_wv[[i]], pch = 1, cex = 1.5)
+        lines(t(obj_list$scales_max_vec),obj_plot[[index_equiv[i]]]$model_hat$wv_implied, type = "p", lwd = 2, col = col_wv[[i]], pch = 1, cex = 1.5)
+
+        legend_names[i] = obj_list$model_name[index_equiv[i]]
+        col_legend[i] = col_wv[i]
+        p_cex_legend = rep(c(1.5,NA),length(obj_list$wv_implied))
+
+        if (is.null(legend_pos)){
+          legend_pos = "bottomleft"
+        }
+        if (add_legend_mgwmw == TRUE){
+          legend(legend_pos, legend_names, bty = "n", lwd = 1, pt.cex = 1.5, pch = p_cex_legend, col = col_legend)
+        }
       }
+    }else if (type == "compare"){
+      model_WVIC_CI(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = FALSE)
+    }else{
+      stop("Please define a valid model")
     }
-  }else if(model_plot == obj_list$model_name){
-    plot.mgmwm(obj_plot[[which(model_plot == obj_list$model_name)]], decomp = decomp,
-               add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = NULL)
   }else{
-    stop("Please define a valid model")
+    if (is.ts.model(model)){
+      plot.mgmwm(obj_plot[[index_model]], decomp = decomp,
+                 add_legend_mgwmw = TRUE, legend_pos = NULL,
+                 ylab_mgmwm = NULL)
+    }else{
+      stop("Please define a valid model")
+    }
   }
 }
+
+
+
+model_WVIC_CI = function(test_model_selection, boot_ci = 500, alpha = 0.05, couleur_axis = FALSE){
+
+  dec = test_model_selection$selection_decision
+
+  n_models = length(test_model_selection$model_name)
+  n_permutation = dim(test_model_selection$obj_out_sample)[1]
+  model_ord = order(test_model_selection$cv_wvic)
+
+  hues = seq(15, 375, length = n_models + 1)
+  couleur = hcl(h = hues, l = 65, c = 100, alpha = 1)[seq_len(n_models+1)]
+
+  if (couleur_axis){
+    col_desc = c("Black", couleur[3], couleur[5], couleur[7])
+  }else{
+    col_desc = rep("Black",4)
+  }
+  names(col_desc) = c("Model not appropriate", "Bigger selected model","Model selected", "Model selected cv-wvic")
+
+  matrix_ci_cvwvic = matrix(NA, boot_ci, n_models)
+  matrix_boot = matrix(NA,boot_ci, n_models)
+
+  for (b in 1:boot_ci){
+    matrix_boot[b,] =  apply(test_model_selection$obj_out_sample[sample(1:n_permutation, replace = TRUE),],2,mean)
+  }
+
+  sd_cvwvic = rep(NA,n_models)
+  ci_low = rep(NA,n_models)
+  ci_high = rep(NA,n_models)
+  coef = qnorm(1-alpha/2)
+  for (i in 1:n_models){
+    sd_cvwvic[i] = sd(matrix_boot[,i])
+    ci_low[i] = test_model_selection$cv_wvic[i] - coef*sd_cvwvic[i]
+    ci_high[i] = test_model_selection$cv_wvic[i] + coef*sd_cvwvic[i]
+  }
+
+
+
+
+  #par(mar = c(0.7, 2,0,0), oma = c(4,6.2,1,1))
+
+  xlab = "CV-WVIC"
+  ylab = " "
+  main = "CI for CV-WVIC"
+  plot(NA, xlim = c(min(ci_low), max(ci_high)), ylim = c(1,n_models), xlab = xlab, ylab = ylab,
+       xaxt = 'n', yaxt = 'n', bty = "n", ann = FALSE, log = "x")
+  win_dim = par("usr")
+  par(new = TRUE)
+  plot(NA, xlim = c(min(ci_low), max(ci_high)), ylim = c(win_dim[3], win_dim[4] + 0.09*(win_dim[4] - win_dim[3])),
+       ylab = ylab, xlab = xlab, xaxt = 'n', yaxt = 'n', bty = "n", log = "x")
+  mtext(xlab, side = 1, line = 2.5)
+  mtext(ylab, side = 2, line = 0)
+  win_dim = par("usr")
+
+  # Add grid
+  grid(NULL, NA, lty = 1, col = "grey95")
+  abline(h = 1:n_models, lty = 1, col = "grey95")
+
+  # Add title
+  x_vec = 10^c(win_dim[1], win_dim[2], win_dim[2], win_dim[1])
+  y_vec = c(win_dim[4], win_dim[4],
+            win_dim[4] - 0.09*(win_dim[4] - win_dim[3]),
+            win_dim[4] - 0.09*(win_dim[4] - win_dim[3]))
+  polygon(x_vec, y_vec, col = "grey95", border = NA)
+  text(x = 10^mean(c(win_dim[1], win_dim[2])), y = (win_dim[4] - 0.09/2*(win_dim[4] - win_dim[3])), main)
+
+  # Add axes and box
+  lines(x_vec[1:2], rep((win_dim[4] - 0.09*(win_dim[4] - win_dim[3])),2), col = "grey50")
+  box(col = "grey50")
+
+  axis(1, padj = 0.3)
+
+  y_axis = axis(2, labels = FALSE, tick = FALSE)
+  y_axis = 1:n_models
+
+  for (i in 1:n_models){
+    axis(2, padj = 0.5, at = i, las = 1, labels = test_model_selection$model_name[model_ord[i]],
+         col.axis = col_desc[test_model_selection$selection_decision[model_ord[i]]])
+  }
+
+  for (i in 1:n_models){
+    lines(c(ci_low[model_ord[i]], ci_high[model_ord[i]]), c(i,i), col = couleur[i])
+    points(c(ci_low[model_ord[i]], ci_high[model_ord[i]]), c(i,i), pch = "|", col = couleur[i])
+    points(test_model_selection$cv_wvic[model_ord[i]], i, pch = 16, cex = 1.5, col = couleur[i])
+  }
+
+}
+
 
