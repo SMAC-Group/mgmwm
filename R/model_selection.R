@@ -271,6 +271,7 @@ plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
                        add_legend_mgwmw = TRUE, legend_pos = NULL,
                        ylab_cvwvic = NULL, couleur_axis = FALSE){
 
+
   n_models = length(obj_list$model_nested)
 
   if (is.ts.model(model)){
@@ -319,7 +320,6 @@ plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
       plot.mgmwm(obj_plot[[which(obj_list$selection_decision == compare_to)]],
                  decomp = decomp,add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = NULL)
       title(main = compare_to)
-
     }else if(type == "equivalent"){
       decomp = FALSE
 
@@ -347,6 +347,7 @@ plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
           legend(legend_pos, legend_names, bty = "n", lwd = 1, pt.cex = 1.5, pch = p_cex_legend, col = col_legend)
         }
       }
+    par(old.par)
     }else if (type == "compare"){
       model_WVIC_CI(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = FALSE)
     }else{

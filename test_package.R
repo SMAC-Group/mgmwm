@@ -37,7 +37,7 @@ end_time <- Sys.time()
 
 end_time - start_time
 
-plot(test_model_selection)
+plot(test_model_selection, type = "compare")
 
 
 
