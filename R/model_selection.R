@@ -3,7 +3,6 @@
 #' @export
 #' @import progress
 model_selection = function(mimu, model, s_est = NULL,
-                           paired_test = FALSE,
                            alpha_paired_test = NULL, seed = 2710){
 
   # Level of confidence for Wilcoxon paired test
@@ -137,6 +136,8 @@ model_selection = function(mimu, model, s_est = NULL,
       obj_out_sample[d,i] = mgmwm_obj_function(model_test[[i]]$theta, model_test[[i]], mimu_test)
     }
 
+
+
     # Pass on the estimated paramters onto the model.
     model_nested[[i]]$starting = FALSE
     model_nested[[i]]$theta =  param_transform(model_nested[[i]], mgmwm_full_dataset$par)
@@ -152,6 +153,7 @@ model_selection = function(mimu, model, s_est = NULL,
     pb$tick(tokens = list(what = "foo   "))
     Sys.sleep(1 / n_models)
   }
+
   # Compute the average on all permutation of the out of sample WVIC
   mod_selected_cvwvic = which.min(cv_wvic)
 
@@ -169,62 +171,60 @@ model_selection = function(mimu, model, s_est = NULL,
   # Decision rule on which model is equivalent
   test_wilcox_result = wilcox_test > alpha_paired_test
 
-  min_mod = mod_selected_cvwvic
+  # Which model are equivalent in the sense of Wilcoxon test
   equiv_mod = which(test_wilcox_result)
+
+  # Which model is the smallest in terms of parameter
   smallest_equiv = (min(model_complexity[test_wilcox_result]) == model_complexity) & test_wilcox_result
+
+  # If there is more than one model, pick the one with the samllest cvwvic
   if (sum(smallest_equiv) > 1){
     smallest_equiv = (min(cv_wvic[smallest_equiv]) == cv_wvic) & smallest_equiv
   }
   smallest_equiv = which(smallest_equiv)
 
-  # If index_select_wilcox_list has multiple model, select the smallest one
-  if(sum(test_wilcox_result) > 1){
-
-    # Select equivalent models (0 means not equivalent)
-    equivalent_models = model_complexity*test_wilcox_result
-    index_equivalent_model = which(equivalent_models != 0)
-    equivalent_models[equivalent_models == 0] = NA
-
-    # model complexity of the smallest one
-    model_complexity_select_wilcox = model_complexity[which.min(equivalent_models)]
-
-    # If more than one model of same size select, pick the one with the smallest cvwvic
-    if(equivalent_models[1:n_models] == model_complexity_select_wilcox){
-
-      equivalent_model_star = equivalent_models
-      equivalent_model_star[equivalent_model_star != model_complexity_select_wilcox] = NA
-      # select the one which min the cvwvic knowing the minimum size
-      model_select_wilcox  = which.min(cv_wvic*equivalent_model_star)
-
-    }else{
-      model_select_wilcox = which.min(equivalent_models)
-    }
-
-  # Put the selected one in chosen model object
-  model_hat = model_nested[[model_select_wilcox]]
-  }else{
-  model_hat = model_nested[[mod_selected_cvwvic]]
-  }
+  selection_decision = rep(NA,n_models)
 
    # Put the decision rule in model object
   for (i in 1:n_models){
-    if(sum(test_wilcox_result) > 1){
-      if(i == model_select_wilcox){
-        model_nested[[i]]$decision = "Model selected"
-      }else if (i == index_equivalent_model & i != mod_selected_cvwvic){
-        model_nested[[i]]$decision = "Bigger equivalent model"
+    if(sum(equiv_mod) > 1){
+      if(i == smallest_equiv){
+        selection_decision[i] = "Model selected"
+        model_hat =  model_nested[[i]]
+      }else if (i == equiv_mod && i != mod_selected_cvwvic){
+        selection_decision[i] = "Bigger equivalent model"
       }else if (i == mod_selected_cvwvic){
-        model_nested[[i]]$decision = "Model selected cvwvic"
+        selection_decision[i] = "Model selected cv-wvic"
       }else{
-        model_nested[[i]]$decision = "Model not appropriate"
+        selection_decision[i] = "Model not appropriate"
       }
     }else{
       if(i == mod_selected_cvwvic){
-        model_nested[[i]]$decision = "Model selected cvwvic"
+        selection_decision[i] = "Model selected"
+        model_hat =  model_nested[[i]]
       }else{
-        model_nested[[i]]$decision = "Model not appropriate"
+        selection_decision[i] = "Model not appropriate"
       }
     }
+
+    # WV implied by the parameter
+    model_nested[[i]]$wv_implied = wv_theo(model_nested[[i]], tau_max_vec)
+
+    # Extact individual model for theoretical decomposition
+    model_nested[[i]]$desc_decomp_theo = desc_decomp_theo_fun(model_nested[[i]], length(model_nested[[i]]$desc))
+
+    # Compute individual theoretical wv
+    decomp_theo = list()
+    for (j in 1:length(model_nested[[i]]$desc)){
+      decomp_theo[[j]] =  wv_theo(model_nested[[i]]$desc_decomp_theo[[j]], tau_max_vec)
+    }
+
+    model_nested[[i]]$decomp_theo = decomp_theo
+  }
+
+  model_name = rep(NA,n_models)
+  for (i in 1:n_models){
+    model_name[i] = model_names(model_nested[[i]])
   }
 
   ## Create the ouput for the selected model
@@ -236,27 +236,118 @@ model_selection = function(mimu, model, s_est = NULL,
   obj_value = model_hat$obj_value
   names(obj_value) = "Value Objective Function"
 
+  # Transform the parameter
+  model_hat$theta = param_transform(model_hat,model_hat$theta)
 
   # WV implied by the parameter
-  wv_implied = wv_theo(model_hat, tau_max_vec)
+  model_hat$wv_implied = wv_theo(model_hat, tau_max_vec)
 
   # Extact individual model for theoretical decomposition
-  desc_decomp_theo = desc_decomp_theo_fun(model_hat, n_process)
-
+  model_hat$desc_decomp_theo = desc_decomp_theo_fun(model_hat, length(model_hat$desc))
 
   # Compute individual theoretical wv
   decomp_theo = list()
-  for (i in 1:n_process){
-    decomp_theo[[i]] =  wv_theo(desc_decomp_theo[[i]], tau_max_vec)
+  for (i in 1:length(model_hat$desc)){
+    decomp_theo[[i]] =  wv_theo(model_hat$desc_decomp_theo[[i]], tau_max_vec)
   }
+  model_hat$decomp_theo = decomp_theo
 
+  # Cancel previous seed
+  set.seed(as.numeric(format(Sys.time(),"%s"))/10)
+
+  out_model_selection = structure(list(estimate = estimate,
+                                  obj_value = obj_value,
+                                  model_hat = model_hat,
+                                  model_nested = model_nested,
+                                  selection_decision = selection_decision,
+                                  cv_wvic = cv_wvic,
+                                  model_name = model_name,
+                                  scales_max_vec = scales_max_vec,
+                                  obj_out_sample = obj_out_sample,
+                                  mimu = mimu), class = "mgmwm")
+  invisible(out_model_selection)
 
 }
 
 
+#' @export
+plot.cvwvic = function(obj_list, decomp = NULL, model_plot = NULL,
+                       add_legend_mgwmw = TRUE, legend_pos = NULL,
+                       ylab_cvwvic = NULL){
+
+  n_models = length(obj_list$model_nested)
+
+  if (is.null(model_plot)){
+    model_plot = "selected"
+  }else{
+    model_plot = model_plot
+  }
+
+  if (is.null(ylab_cvwvic)){
+    ylab = expression(paste("Wavelet Variance ", nu^2, sep = ""))
+  }else{
+    ylab = ylab_cvwvic
+  }
+
+  if (decomp == FALSE){
+    decomp = FALSE
+  }else{
+    decomp = TRUE
+  }
+
+  obj_plot = list()
+
+  for (i in 1:n_models){
+    obj_plot[[i]] = list(mimu = obj_list$mimu, model_hat = obj_list$model_nested[[i]],
+                        scales_max_vec = obj_list$scales_max_vec)
+  }
+
+  # Extract index of equivalent model
+  index_equiv = which(obj_list$selection_decision == "Model selected" | obj_list$selection_decision == "Model selected cv-wvic" | obj_list$selection_decision == "Bigger equivalent model")
 
 
+  if(model_plot == "selected"){
+    plot.mgmwm(obj_plot[[which(obj_list$selection_decision == "Model selected")]], decomp = decomp,
+               add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = NULL)
+    title(main = "Model selected")
 
+  }else if((model_plot == "cvwvic")){
+    plot.mgmwm(obj_plot[[which(obj_list$selection_decision == "Model selected cv-wvic")]],
+               decomp = decomp,add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = NULL)
+    title(main = "Model selected cv-wvic")
 
+  }else if(model_plot == "equivalent"){
+    decomp = FALSE
 
+    index_equiv = which(obj_list$selection_decision == "Model selected" | obj_list$selection_decision == "Model selected cv-wvic" | obj_list$selection_decision == "Bigger equivalent model")
+
+    plot(obj_plot[[1]]$mimu, add_legend = FALSE, transparency_wv = 0.4, transparency_ci = 0.05, ylab = ylab)
+
+    U = length(index_equiv)
+    col_wv = hcl(h = seq(100, 375, length = U + 1), l = 65, c = 200, alpha = 1)[1:U]
+    legend_names = rep(NA,length(index_equiv))
+    col_legend = rep(NA,length(index_equiv))
+    for (i in 1:length(index_equiv)){
+      # Plot implied WV
+      lines(t(obj_list$scales_max_vec),obj_plot[[index_equiv[i]]]$model_hat$wv_implied, type = "l", lwd = 3, col = col_wv[[i]], pch = 1, cex = 1.5)
+      lines(t(obj_list$scales_max_vec),obj_plot[[index_equiv[i]]]$model_hat$wv_implied, type = "p", lwd = 2, col = col_wv[[i]], pch = 1, cex = 1.5)
+
+      legend_names[i] = obj_list$model_name[index_equiv[i]]
+      col_legend[i] = col_wv[i]
+      p_cex_legend = rep(c(1.5,NA),length(obj_list$wv_implied))
+
+      if (is.null(legend_pos)){
+        legend_pos = "bottomleft"
+      }
+      if (add_legend_mgwmw == TRUE){
+        legend(legend_pos, legend_names, bty = "n", lwd = 1, pt.cex = 1.5, pch = p_cex_legend, col = col_legend)
+      }
+    }
+  }else if(model_plot == obj_list$model_name){
+    plot.mgmwm(obj_plot[[which(model_plot == obj_list$model_name)]], decomp = decomp,
+               add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = NULL)
+  }else{
+    stop("Please define a valid model")
+  }
+}
 

@@ -396,3 +396,56 @@ wv_theo = function(model, tau){
   # Summing them up and return
   apply(wv, 2, sum)
 }
+
+#' @export
+#'
+model_names = function(model){
+
+  model_name = list()
+  n_ar1 = sum(model$desc == "AR1")
+
+  ar1_espression = bquote(paste(n_ar1,"*Wavelet Variance "))
+
+  for (j in 1:length(model$desc)){
+    counter = 1
+
+    # is quantization noise?
+    if (model$desc[j] == "QN"){
+      model_name[[1]] = "QN"
+      counter = counter + 1
+    }
+
+    # is white noise?
+    if (model$desc[j] == "WN"){
+      model_name[[2]] =  "WN"
+      counter = counter + 1
+    }
+
+    # is AR1?
+    if (model$desc[j] == "AR1"){
+      if(n_ar1 == 1){
+        model_name[[3]] = "AR1"
+      }else{
+        model_name[[3]] = paste0(c(n_ar1,"AR1"), collapse = '*')
+      }
+      counter = counter + 1
+
+    }
+
+    # is random walk?
+    if (model$desc[j] == "RW"){
+      model_name[[4]] = "RW"
+      counter = counter + 1
+    }
+
+    # is drift?
+    if (model$desc[j] == "DR"){
+      model_name[[5]] =  "DR"
+      counter = counter + 1
+    }
+
+  }
+  x = unlist(model_name)
+  paste0(unlist(model_name), collapse = '+')
+}
+

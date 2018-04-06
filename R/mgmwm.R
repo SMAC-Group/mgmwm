@@ -202,12 +202,23 @@ mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max 
     n_boot_ci_max = n_boot_ci_max
   }
 
+  # Number of differentn time series in mimu object
+  n_replicates = length(mimu)
+
+  # Extract tau max
+  length_tau = rep(NA,n_replicates)
+
+  for (i in 1:n_replicates){
+    length_tau[i] = length(mimu[[i]]$tau)
+  }
+
+  # Vector of maximum tau and scales
+  tau_max_vec = mimu[[which.max(length_tau)]]$tau
+  scales_max_vec = mimu[[which.max(length_tau)]]$scales
 
   # Set seed for reproducibility
   set.seed(seed)
 
-  # Number of differentn time series in mimu object
-  n_replicates = length(mimu)
 
   N = rep(NA,n_replicates)
 
@@ -282,6 +293,22 @@ mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max 
 
     # Transform the parameter
     model_hat$theta = param_transform(model_hat,model_hat$theta)
+
+
+    # WV implied by the parameter
+    model_hat$wv_implied = wv_theo(model_hat, tau_max_vec)
+
+    # Extact individual model for theoretical decomposition
+    model_hat$desc_decomp_theo = desc_decomp_theo_fun(model_hat, n_process)
+
+    # Compute individual theoretical wv
+    decomp_theo = list()
+    for (i in 1:n_process){
+      decomp_theo[[i]] =  wv_theo(model_hat$desc_decomp_theo[[i]], tau_max_vec)
+    }
+
+    model_hat$decomp_theo = decomp_theo
+
   }else{
     # Number of latent pocesses in model
     n_process = length(model_hat$desc)
@@ -294,7 +321,7 @@ mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max 
 
     p_value = near_stationarity_test(mimu = mimu, model_hat = model_hat,
                                      seed = seed, B_stationarity_test = B_stationarity_test)
-    # decision rules from the test
+    # decision rule from the test
     if(p_value >= alpha_near_test){
       test_res = "Data are stationary"
     }else{
@@ -318,34 +345,11 @@ mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max 
       ci_high[k] = as.numeric(quantile(na.omit(distrib_param[,k]),(1-alpha_ci/2)))
     }
   }else{
-    distrib_param = "Confidence intervals no computed. Set `CI = TRUE`"
+    distrib_param = "Confidence intervals not computed. Set `CI = TRUE`"
     ci_low = NA
     ci_high = NA
   }
 
-
-  # Extract tau max
-  length_tau = rep(NA,n_replicates)
-
-  for (i in 1:n_replicates){
-    length_tau[i] = length(mimu[[i]]$tau)
-  }
-
-  # Vector of maximum tau and scales
-  tau_max_vec = mimu[[which.max(length_tau)]]$tau
-  scales_max_vec = mimu[[which.max(length_tau)]]$scales
-
-  # WV implied by the parameter
-  wv_implied = wv_theo(model_hat, tau_max_vec)
-
-  # Extact individual model for theoretical decomposition
-  desc_decomp_theo = desc_decomp_theo_fun(model_hat, n_process)
-
-  # Compute individual theoretical wv
-  decomp_theo = list()
-  for (i in 1:n_process){
-    decomp_theo[[i]] =  wv_theo(desc_decomp_theo[[i]], tau_max_vec)
-  }
 
   estimates = as.matrix(model_hat$theta)
   rownames(estimates) = model_hat$process.desc
@@ -359,11 +363,9 @@ mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max 
 
   out = structure(list(estimates = estimates,
                        obj_value = obj_value,
-                       decomp_theo = decomp_theo,
                        model_hat = model_hat,
                        scales_max_vec = scales_max_vec,
                        p_value = p_value,
-                       wv_implied = wv_implied,
                        test_result = test_res,
                        distrib_param = distrib_param,
                        ci_low = ci_low,
@@ -374,11 +376,11 @@ mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max 
 
 
 #' @export plot.mgmwm
-plot.mgmwm = function(obj_list, process_decomp = FALSE,
+plot.mgmwm = function(obj_list, decomp = FALSE,
                       add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = NULL){
 
-  mimu_obj_name = attr(obj_list[[7]], "exp.name")
-  mimu_obj_name = paste("Empirical WV", mimu_obj_name)
+  # mimu_obj_name = attr(obj_list[[7]], "exp.name")
+  # mimu_obj_name = paste("Empirical WV", mimu_obj_name)
 
   if (is.null(ylab_mgmwm)){
     ylab = expression(paste("Wavelet Variance ", nu^2, sep = ""))
@@ -388,22 +390,22 @@ plot.mgmwm = function(obj_list, process_decomp = FALSE,
 
 
   plot(obj_list$mimu, add_legend = FALSE,ylab = ylab)
-  U = length(obj_list$decomp_theo)
+  U = length(obj_list$model_hat$decomp_theo)
   col_wv = hcl(h = seq(100, 375, length = U + 1), l = 65, c = 200, alpha = 1)[1:U]
 
-  if(process_decomp == TRUE){
+  if(decomp == TRUE){
     # Number of Latent proces
 
     # Plot lines of decomp theo
     for (i in 1:U){
-      lines(t(obj_list$scales_max_vec), obj_list$decomp_theo[[i]], col = col_wv[i])
+      lines(t(obj_list$scales_max_vec), obj_list$model_hat$decomp_theo[[i]], col = col_wv[i])
     }
   }
   # Plot implied WV
-  lines(t(obj_list$scales_max_vec),obj_list$wv_implied, type = "l", lwd = 3, col = "#F47F24", pch = 1, cex = 1.5)
-  lines(t(obj_list$scales_max_vec),obj_list$wv_implied, type = "p", lwd = 2, col = "#F47F24", pch = 1, cex = 1.5)
+  lines(t(obj_list$scales_max_vec),obj_list$model_hat$wv_implied, type = "l", lwd = 3, col = "#F47F24", pch = 1, cex = 1.5)
+  lines(t(obj_list$scales_max_vec),obj_list$model_hat$wv_implied, type = "p", lwd = 2, col = "#F47F24", pch = 1, cex = 1.5)
 
-  if(process_decomp == TRUE){
+  if(decomp == TRUE){
     legend_names = c("Implied WV", obj_list$model_hat$desc)
     col_legend = c("#F47F24",col_wv)
     p_cex_legend = c(1.5,rep(NA,U))
