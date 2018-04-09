@@ -541,8 +541,6 @@ desc_decomp_theo_fun = function(model_hat, n_process){
 #'@export
 summary.mgmwm = function(object){
 
-
-
   out = object$estimates
 
   N = object$N
@@ -558,7 +556,7 @@ summary.mgmwm = function(object){
 
 
   x = structure(list(estimates=out,
-                     obj_value= object$obj_value))
+                obj_value= object$obj_value), class = "summary.mgmwm")
 
   x
 }

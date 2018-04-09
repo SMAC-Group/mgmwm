@@ -19,6 +19,21 @@ library(iterpc)
 data(mtig1khrz)
 data(adis16405)
 
+n1 = 100000
+n2 = 500000
+n3 = 1000000
+
+model1 = AR1(.995, sigma2 = 1e-6) + WN(.005) + RW (1e-7)
+Wt =  gen_gts(n3, model1)
+Xt =  gen_gts(n1, model1)
+Yt =  gen_gts(n2, model1)
+Zt =  gen_gts(n3, model1)
+
+test1 = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
+                 sensor.name = "MTiG - Gyro. X", exp.name = c("today", "yesterday", "a few days ago"))
+test2 = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
+                 sensor.name = "MTiG - Gyro. Y", exp.name = c("today", "yesterday", "a few days ago"))
+test = list("Gyro. X" = test1, "Gyro. Y" = test2)
 
 const.RENDER_PLOT_WIDTH = 1000
 const.RENDER_PLOT_HEIGHT = 600
@@ -77,7 +92,8 @@ ui <- shinyUI(fluidPage(
     column(4,
 
            selectInput("imu_obj", "Select IMU file:",
-                       c("ADIS 16405 imu 100Hz" = "adis16405",
+                       c("test" = "test",
+                         "ADIS 16405 imu 100Hz" = "adis16405",
                          "MTI-G-710 imu 1k Hz" = "mtig1khrz"),
                        selected = 1),
 
@@ -131,6 +147,10 @@ ui <- shinyUI(fluidPage(
 
            br(),
            br(),
+           selectInput("sel_mod", "Select Estimated Model", c("1"="1","2"="2", selected = 1)),
+
+           checkboxInput("rm", "Remove", FALSE),
+           checkboxInput("eq", "Eq", FALSE),
 
            checkboxGroupInput("inCheckboxGroup", "Model category",
                               c("Selected", "Equivalent", "All")),
@@ -159,17 +179,18 @@ server <- function(input, output, session) {
                       sensor_column = NULL,
                       overlap_datasheet = FALSE,
                       y_label_with_dataunits = NA,
-
-
                       first_time_plotting_6_pack = TRUE,
-
                       custom_data = FALSE,
                       custom_data_name = NULL,
                       custom_data_type = NULL,
                       custom_data_size = NULL,
                       custom_data_tot_colums = NULL,
                       datasheet_noise_model = NULL,
-                      datasheet_values_make_sense = FALSE)
+                      datasheet_values_make_sense = FALSE,
+                      model_selection = FALSE,
+                      model_selection_model_selected_name = NULL,
+                      model_selection_model_selected = NULL,
+                      user_selected_model = NULL)
 
 
   dsnames <- c()
@@ -194,6 +215,38 @@ server <- function(input, output, session) {
                       choices = cb_options,
                       selected = "")
   })
+
+  get_model = reactive({
+    #print("22")
+    #if (v$model_selection == TRUE){
+    #  print(v$model_selection)
+
+
+    #  print("3")
+    #  print(input$sel_mod != "" && (is.null(v$model_selection_model_selected_name) || input$mod_sel != v$model_selection_model_selected_name))
+    #  print(v$model_selection_model_selected_name)
+    #  print(input$mod_sel)
+    #  print(class(input$mod_sel))
+
+    #  if (!is.null(input$mod_sel)){
+      #  v$user_selected_model = input$mod_sel
+    #    print("1111")
+    #  }
+
+      #print(v$user_selected_model)
+      #if (v$user_selected_model != "" && (is.null(v$model_selection_model_selected_name) || v$user_selected_model != v$model_selection_model_selected_name)){
+      #  updateNavbarPage(session, "tabs", selected = "Selected Model")
+      #  print("4")
+      #  v$model_selection_model_selected_name = v$form$model_name[which(v$form$model_name %in% input$sel_mod)]
+      #  print("44")
+      #  print(v$model_selection_model_selected_name)
+      #  v$new_model_selection = TRUE
+      v$form$model_nested[[which(v$form$model_name %in% input$sel_mod)]]
+      #}
+    #}
+  })
+
+
 
 
   # PUSHING ON BUTTON "Plot WV"
@@ -308,7 +361,7 @@ server <- function(input, output, session) {
       v$gmwm = mgmwm(mimu = Xt, model = model, CI = input$ci, stationarity_test = input$test)
       v$form = v$gmwm
       v$first_gmwm = FALSE
-
+      v$model_selection = FALSE
       updateNavbarPage(session, "tabs", selected = "Selected Sensor")
 
     })
@@ -392,25 +445,45 @@ server <- function(input, output, session) {
       a = model_selection(mimu = Xt, model = model, s_est = NULL,
                           alpha_paired_test = NULL, seed = 2710)
       v$form = a
-
-      updateNavbarPage(session, "tabs", selected = "Selected Model")
-
-
+      v$model_selection = TRUE
+      updateNavbarPage(session, "tabs", selected = "Selected Sensor")
+      updateSelectInput(session, "sel_mod",
+                        label = "Select Estimated Model",
+                        choices = v$form$model_name,
+                        selected = "")
     })
+  })
+
+
+  observeEvent(input$rm, {
+    if (!is.null(v$form$model_name)){
+      if (input$rm){
+        updateSelectInput(session, "sel_mod",
+                          label = "Select Estimated Model",
+                          choices = v$form$model_name[v$form$selection_decision != "Model not appropriate"],
+                          selected = "")
+      }else{
+        updateSelectInput(session, "sel_mod",
+                          label = "Select Estimated Model",
+                          choices = v$form$model_name,
+                          selected = "")
+      }
+
+    }
   })
 
   output$model_selection <- renderUI({
     if(class(v$form == cvwvic)){
       name = v$form$model_name
     }
-
-
   })
 
 
   output$plot2 <- renderPlot({
     if (class(v$form) == "mgmwm"){
       plot.mgmwm(v$form, decomp = TRUE)
+    }else if (class(v$form) == "cvwvic"){
+      plot(v$form)
     }else{
       plot(v$form)
     }
@@ -418,7 +491,15 @@ server <- function(input, output, session) {
 
   output$plot3 <- renderPlot({
     if (class(v$form) == "cvwvic"){
-      plot.cvwvic(v$form, decomp = TRUE)
+      if (input$eq){
+        plot(v$form, type = "equivalent")
+      }else{
+        if (input$sel_mod != ""){
+          plot(v$form, decomp = TRUE,  model = get_model())
+        }else{
+          plot(v$form, decomp = TRUE)
+        }
+      }
     }else{
       plot(v$form)
     }

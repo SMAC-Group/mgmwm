@@ -55,7 +55,7 @@ model_selection = function(mimu, model, s_est = NULL,
   set.seed(seed)
 
   pb <- progress_bar$new(
-    format = "  Model :current of :total Models. Time remaining:  :eta",
+    format = "  Model :current of :total Models. Estimated remaining time:  :eta",
     clear = FALSE, total = n_models, width = 100)
 
   for (i in 1:n_models){
@@ -266,7 +266,7 @@ model_selection = function(mimu, model, s_est = NULL,
 }
 
 
-#' @export
+#' @export plot.cvwvic
 plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
                        add_legend_mgwmw = TRUE, legend_pos = NULL,
                        ylab_cvwvic = NULL, couleur_axis = FALSE){
@@ -347,7 +347,7 @@ plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
           legend(legend_pos, legend_names, bty = "n", lwd = 1, pt.cex = 1.5, pch = p_cex_legend, col = col_legend)
         }
       }
-    par(old.par)
+    #par(old.par)
     }else if (type == "compare"){
       model_WVIC_CI(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = FALSE)
     }else{
