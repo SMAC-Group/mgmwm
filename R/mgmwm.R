@@ -334,15 +334,15 @@ mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max 
 
   # Compute the CI for paramters
   if(CI == TRUE){
-    distrib_param = ci_mgmwm(model_hat = model_hat, mimu = mimu,
+    distrib_param = ci_mgmwm(model_ci = model_hat, mimu = mimu,
                   n_boot_ci_max = n_boot_ci_max, n_replicates, seed = seed)
 
     ci_low = rep(NA,np)
     ci_high = rep(NA,np)
     #Compute the empirical quantile
     for (k in 1:np){
-      ci_low[k] = model_hat$theta[[k]] - as.numeric(quantile(na.omit(distrib_param[,k]),(alpha_ci/2)))
-      ci_high[k] = model_hat$theta[[k]] + as.numeric(quantile(na.omit(distrib_param[,k]),(1-alpha_ci/2)))
+      ci_low[k] = as.numeric(quantile(distrib_param[,k],(alpha_ci/2)))
+      ci_high[k] = as.numeric(quantile(distrib_param[,k],(1-alpha_ci/2)))
     }
   }else{
     distrib_param = "Confidence intervals not computed. Set `CI = TRUE`"
@@ -447,35 +447,38 @@ near_stationarity_test = function(mimu = mimu, model_hat = model_hat,
 }
 
 #' @import iterpc
-ci_mgmwm = function(model_hat = model_hat, mimu = mimu,
+ci_mgmwm = function(model_ci = model_ci, mimu = mimu,
                     n_boot_ci_max = n_boot_ci_max, n_replicates = n_replicates,
                     seed = seed){
 
-  np = model_hat$plength
+  np = model_ci$plength
 
   # Set up starting value in model to false
-  model_hat$starting = TRUE
+  model_ci$starting = TRUE
 
   I = iterpc::iterpc(n_replicates, n_replicates, replace = TRUE)
-  perm = getall(I)
+  perm = iterpc::getall(I)
   n_permutation = dim(perm)[1]
 
-  distrib_param = matrix(NA,n_permutation,np)
-  starting_value = inv_param_transform(model_hat, model_hat$theta)
+
+  starting_value = inv_param_transform(model_ci, model_ci$theta)
+
+  model_ci$starting = TRUE
 
   if(n_permutation < n_boot_ci_max){
-
+    distrib_param = matrix(NA,n_permutation,np)
     for (i in 1:n_permutation){
       sampled_imu_obj = list()
       for (j in 1:n_replicates){
         sampled_imu_obj[[j]] = mimu[[perm[i,j]]]
         class(sampled_imu_obj) = "mimu"
       }
-      distrib_param[i,] = optim(starting_value, mgmwm_obj_function, model = model_hat, mimu = sampled_imu_obj)$par
-      distrib_param[i,] = param_transform(model_hat, distrib_param[i,])
+      distrib_param[i,] = optim(starting_value, mgmwm_obj_function, model = model_ci, mimu = sampled_imu_obj)$par
+      distrib_param[i,] = param_transform(model_ci, distrib_param[i,])
     }
   }else{
     n_permutation = n_boot_ci_max
+    distrib_param = matrix(NA,n_permutation,np)
     for (i in 1:n_permutation){
       # Seed for reproducibility
       set.seed(i+seed)
@@ -483,15 +486,14 @@ ci_mgmwm = function(model_hat = model_hat, mimu = mimu,
       sampled_imu_obj = list()
       sampled_permutation = sample(1:n_replicates, n_replicates, replace = TRUE)
       for (j in 1:n_replicates){
-        sampled_imu_obj[[j]] = mimu[[sampled_permutation[i]]]
+        sampled_imu_obj[[j]] = mimu[[sampled_permutation[j]]]
         class(sampled_imu_obj) = "mimu"
       }
-      distrib_param[i,] = optim(starting_value, mgmwm_obj_function, model = model_hat, mimu = sampled_imu_obj)$par
+      distrib_param[i,] = optim(starting_value, mgmwm_obj_function, model = model_ci, mimu = sampled_imu_obj)$par
 
-      distrib_param[i,] = param_transform(model_hat, distrib_param[i,])
+      distrib_param_trans[i,] = param_transform(model_ci, distrib_param[i,])
     }
   }
-  distrib_param
 }
 
 desc_decomp_theo_fun = function(model_hat, n_process){
