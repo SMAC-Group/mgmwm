@@ -134,7 +134,7 @@ inv_param_transform = function(model,theta1){
 }
 
 #' @export
-model_combination = function(model_max){
+model_combination = function(model){
 
   # String description of model
   model_desc_max = model$desc

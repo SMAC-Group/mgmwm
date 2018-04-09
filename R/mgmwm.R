@@ -457,7 +457,7 @@ ci_mgmwm = function(model_hat = model_hat, mimu = mimu,
   model_hat$starting = TRUE
 
   I = iterpc::iterpc(n_replicates, n_replicates, replace = TRUE)
-  perm = getall(I)
+  perm = iterpc::getall(I)
   n_permutation = dim(perm)[1]
 
   distrib_param = matrix(NA,n_permutation,np)
@@ -483,7 +483,7 @@ ci_mgmwm = function(model_hat = model_hat, mimu = mimu,
       sampled_imu_obj = list()
       sampled_permutation = sample(1:n_replicates, n_replicates, replace = TRUE)
       for (j in 1:n_replicates){
-        sampled_imu_obj[[j]] = mimu[[sampled_permutation[i]]]
+        sampled_imu_obj[[j]] = mimu[[sampled_permutation[j]]]
         class(sampled_imu_obj) = "mimu"
       }
       distrib_param[i,] = optim(starting_value, mgmwm_obj_function, model = model_hat, mimu = sampled_imu_obj)$par
