@@ -2,12 +2,12 @@
 #
 # This file is part of classimu R Methods Package
 #
-# The `classimu` R package is free software: you can redistribute it and/or modify
+# The `mgmwm` R package is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# The `classimu` R package is distributed in the hope that it will be useful, but
+# The `mgmwm` R package is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
@@ -341,8 +341,8 @@ mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max 
     ci_high = rep(NA,np)
     #Compute the empirical quantile
     for (k in 1:np){
-      ci_low[k] = as.numeric(quantile(na.omit(distrib_param[,k]),(alpha_ci/2)))
-      ci_high[k] = as.numeric(quantile(na.omit(distrib_param[,k]),(1-alpha_ci/2)))
+      ci_low[k] = model_hat$theta[[k]] - as.numeric(quantile(na.omit(distrib_param[,k]),(alpha_ci/2)))
+      ci_high[k] = model_hat$theta[[k]] + as.numeric(quantile(na.omit(distrib_param[,k]),(1-alpha_ci/2)))
     }
   }else{
     distrib_param = "Confidence intervals not computed. Set `CI = TRUE`"
@@ -437,7 +437,7 @@ near_stationarity_test = function(mimu = mimu, model_hat = model_hat,
     for (j in 1:n_replicates){
       sim.H0[[j]] = simts::gen_gts(mimu[[j]]$N, model_hat)
     }
-    simu.obj = make_wvar_mimu_obj(for_test = sim.H0, freq = 100, unit = "s", sensor.name = "",
+    simu.obj = make_mimu(for_test = sim.H0, freq = 100, unit = "s", sensor.name = "",
                                   exp.name = "")
     distrib_H0[i] = optim(model_hat$theta, mgmwm_obj_function, model = model, mimu = simu.obj)$value
   }
@@ -448,7 +448,8 @@ near_stationarity_test = function(mimu = mimu, model_hat = model_hat,
 
 #' @import iterpc
 ci_mgmwm = function(model_hat = model_hat, mimu = mimu,
-                    n_boot_ci_max = n_boot_ci_max, n_replicates, seed = seed){
+                    n_boot_ci_max = n_boot_ci_max, n_replicates = n_replicates,
+                    seed = seed){
 
   np = model_hat$plength
 

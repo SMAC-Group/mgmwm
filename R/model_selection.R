@@ -402,14 +402,10 @@ model_WVIC_CI = function(test_model_selection, boot_ci = 500, alpha = 0.05, coul
   }
 
 
-
-
-  #par(mar = c(0.7, 2,0,0), oma = c(4,6.2,1,1))
-
   xlab = "CV-WVIC"
   ylab = " "
   main = "CI for CV-WVIC"
-  plot(NA, xlim = c(min(ci_low), max(ci_high)), ylim = c(1,n_models), xlab = xlab, ylab = ylab,
+  plot(NA, xlim = c(min(ci_low), max(ci_high)), ylim = c(1,n_models), xlab = "", ylab = ylab,
        xaxt = 'n', yaxt = 'n', bty = "n", ann = FALSE, log = "x")
   win_dim = par("usr")
   par(new = TRUE)

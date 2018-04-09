@@ -1,10 +1,12 @@
 library(simts)
+library(imudata)
+library(mgmwm2)
 n1 = 100000
 n2 = 500000
 n3 = 1000000
 
 model1 = AR1(.995, sigma2 = 1e-6) + WN(.005) + RW (1e-7)
-model = 2*AR1() + RW() + DR()
+model = 2*AR1() + DR()
 Wt =  gen_gts(n3, model1)
 Xt =  gen_gts(n1, model1)
 Yt =  gen_gts(n2, model1)
@@ -15,7 +17,7 @@ mimu = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
          sensor.name = "MTiG - Gyro. X", exp.name = c("today", "yesterday", "a few days ago"))
 
 start_time <- Sys.time()
-test_mgmwm1 = mgmwm(mimu, model, CI = FALSE, stationarity_test = FALSE, B_stationarity_test = NULL,
+test_mgmwm1 = mgmwm(mimu, model, CI = TRUE, stationarity_test = FALSE, B_stationarity_test = NULL,
                     alpha_ci = NULL, alpha_near_test = NULL, seed = 2710, n_boot_ci_max = 300)
 end_time <- Sys.time()
 

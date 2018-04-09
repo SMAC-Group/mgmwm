@@ -11,17 +11,14 @@ library(shiny)
 library(shinyjs)
 library(imudata)
 library(mgmwm2)
-library(gmwm)
 library(wv)
+library(gmwm)
 library(simts)
+library(iterpc)
 
-data(KVH1750imu1kHzAcc)
-data(KVH1750imu1kHzGyro)
-data(MTIG710imu1kHz)
-data(KVH1750imuAcc)
-data(KVH1750imuGyro)
-data(MTIG710imu50Hz)
-data(ADIS16405imu100Hz)
+data(mtig1khrz)
+data(adis16405)
+
 
 const.RENDER_PLOT_WIDTH = 1000
 const.RENDER_PLOT_HEIGHT = 600
@@ -51,6 +48,7 @@ ui <- shinyUI(fluidPage(
   tabsetPanel(id = "tabs",
               tabPanel("Model Data", plotOutput(outputId = "plot", height = const.FIGURE_PLOT_HEIGHT)),
               tabPanel("Selected Sensor", plotOutput(outputId = "plot2", height = const.FIGURE_PLOT_HEIGHT)),
+              tabPanel("Selected Model", plotOutput(outputId = "plot3", height = const.FIGURE_PLOT_HEIGHT)),
               tabPanel("Summary", verbatimTextOutput(outputId = "summ", placeholder = FALSE)),
               tabPanel("Tutorial", htmlOutput("tuto")),
               tabPanel("Help",
@@ -72,78 +70,78 @@ ui <- shinyUI(fluidPage(
               )
   ),
 
+
   hr(),
 
   fluidRow(
     column(4,
 
+           selectInput("imu_obj", "Select IMU file:",
+                       c("ADIS 16405 imu 100Hz" = "adis16405",
+                         "MTI-G-710 imu 1k Hz" = "mtig1khrz"),
+                       selected = 1),
 
-             selectInput("imu_obj", "Select IMU file:",
-                         c("KVH 1750 imu 1k Hz Accelerometers"="KVH1750imu1kHzAcc",
-                           "KVH 1750 imu 1k Hz Gyroscopes"="KVH1750imu1kHzGyro",
-                           "MTI-G-710 imu 1k Hz"="MTIG710imu1kHz",
-                           "MTI-G-710 imu 50 Hz"="MTIG710imu50Hz",
-                           "KVH 1750 imu 100 Hz Accelerometers"="KVH1750imuAcc",
-                           "KVH 1750 imu 100 Hz Gyroscopes"="KVH1750imuGyro",
-                           "ADIS 16405 imu 100Hz" = "ADIS16405imu100Hz"),
-                         selected = 1),
-
-            selectInput("sensors", "Select sensor", c("1"="1","2"="2", selected = 1)),
+           selectInput("sensors", "Select sensor", c("1"="1","2"="2", selected = 1)),
 
 
 
            actionButton("fit1", label = "Plot WV"),
 
+
            br(),
 
            uiOutput("choose_columns")
+
+           ),
+    column(4,
+           checkboxGroupInput("model", "Select Latent Processes",
+                              c("Quantization Noise" = "QN",
+                                "White Noise" = "WN",
+                                "Random Walk" = "RW",
+                                "Drift" = "DR",
+                                "Auto-Regressive" = "AR"),
+                              selected = "WN"),
+           conditionalPanel(
+             condition = "input.model.indexOf('AR')>-1",
+             sliderInput("gm_nb", "Number of Gauss-Markov Processes", 1, 5, 2)
+           ),
+
+           checkboxInput("ci", "Compute confidence Intervals", FALSE),
+           checkboxInput("test", "Compute near-stationarity test", FALSE),
+
+
+           actionButton("fit3", label = "Fit Model"),
+
+           conditionalPanel(
+             condition = "input.edit_intern == 1",
+             numericInput("num", label = "Number of Simu. for Starting Values", value = 10^5),
+             numericInput("seed", label = "Simulation seed", value = 2710)
+           )
+
+
     ),
+    column(4,
 
-column(4,
-       checkboxGroupInput("model", "Select Model",
-                          c("Quantization Noise" = "QN",
-                            "White Noise" = "WN",
-                            "Random Walk" = "RW",
-                            "Drift" = "DR",
-                            "Auto-Regressive" = "AR"),
-                          selected = "WN"),
-       conditionalPanel(
-         condition = "input.model.indexOf('AR')>-1",
-         sliderInput("gm_nb", "Number of Gauss-Markov Processes", 1, 5, 2)
-       ),
 
-       checkboxInput("test", "Compute near-stationarity test", FALSE),
 
-       actionButton("fit3", label = "Fit Model"), actionButton("ci", label = "Compute confidence Intervals"),
+           br(),
+           br(),
 
-       br(),
-       br(),
-       br(),
-       br(),
+           actionButton("fit2", label = "Reduce Model Automatically"),
 
-       actionButton("fit2", label = "Reduce Model Automatically")
+           br(),
+           br(),
 
-),
+           checkboxGroupInput("inCheckboxGroup", "Model category",
+                              c("Selected", "Equivalent", "All")),
+           selectInput("model_selection", "Select input",
+                       c("Item A", "Item B", "Item C"))
 
-column(4,
 
-       checkboxInput("process_decomp", "Show latent processes", TRUE),
-       checkboxInput("test_pval", "Paired test Selection", FALSE),
 
-       br(),
+    )
+  )
 
-       checkboxGroupInput("summary_plot", label = "Summary options:",
-                          c("Show test result" = "test_result"),
-                          selected = c("sum")),
-
-       conditionalPanel(
-         condition = "input.edit_intern == 1",
-         numericInput("num", label = "Number of Simu. for Starting Values", value = 10^5),
-         numericInput("seed", label = "Simulation seed", value = 2710)
-       )
-
-)
-)
 ))
 
 # Define server logic required to draw a histogram
@@ -307,8 +305,7 @@ server <- function(input, output, session) {
       if (is.null(input$num)){
         input$num = 10^5
       }
-      v$gmwm = mgmwm(mimu = Xt, model = model, CI = FALSE, stationarity_test = FALSE, B_stationarity_test = NULL,
-                     alpha_ci = NULL, alpha_near_test = NULL, seed = 2710, n_boot_ci_max = 300)
+      v$gmwm = mgmwm(mimu = Xt, model = model, CI = input$ci, stationarity_test = input$test)
       v$form = v$gmwm
       v$first_gmwm = FALSE
 
@@ -392,24 +389,41 @@ server <- function(input, output, session) {
         model = 3*AR1()
       }
 
-      a = model_selection(mimu, model, s_est = NULL,
+      a = model_selection(mimu = Xt, model = model, s_est = NULL,
                           alpha_paired_test = NULL, seed = 2710)
       v$form = a
 
+      updateNavbarPage(session, "tabs", selected = "Selected Model")
 
 
-      updateNavbarPage(session, "tabs", selected = "Selected Sensor")
     })
+  })
+
+  output$model_selection <- renderUI({
+    if(class(v$form == cvwvic)){
+      name = v$form$model_name
+    }
+
+
   })
 
 
   output$plot2 <- renderPlot({
     if (class(v$form) == "mgmwm"){
-      plot(v$form, decomp = input$process_decomp)
+      plot.mgmwm(v$form, decomp = TRUE)
     }else{
       plot(v$form)
     }
   })
+
+  output$plot3 <- renderPlot({
+    if (class(v$form) == "cvwvic"){
+      plot.cvwvic(v$form, decomp = TRUE)
+    }else{
+      plot(v$form)
+    }
+  })
+
 
   output$plot <- renderPlot({
     N = length(v$all)
@@ -434,22 +448,21 @@ server <- function(input, output, session) {
   output$summ <- renderPrint({
     if (v$fit){
 
-      summmary_of_gmwm = list(v$form$estimate, v$form$obj.value, v$form$p_value, v$form$test_res)
+      summmary_of_gmwm = list(v$form$estimate, v$form$obj_value,v$form$ci_low,v$form$ci_high,
+                              v$form$p_value, v$form$test_res)
 
-      if("ci" %in% input$summary_plot){
+      if("ci" %in% input$ci){
         # summmary_of_gmwm
-        cat("Objective Function: ", v$form$obj.value, "\n")
-        cat("P-value: ", v$form$test_res, "\n\n")
-        cat("Test Result: ", v$form$test.result, "\n\n\n")
+        cat("Objective Function: ", v$form$obj_value, "\n")
         v$form$estimate
+        cat("CI: ", v$form$ci_low, "\n\n\n\n")
       } else {
-        cat("Objective Function: ", v$form$obj.value, "\n")
-        v$form$obj.value
+        cat("Objective Function: ", v$form$obj_value, "\n")
+        v$form$obj_value
         v$form$estimate
       }
     }
   })
-
 
   output$tuto <- renderUI({
     tags$iframe(src = "https://www.youtube.com/embed/HPPj6viIBmU", height=400, width=600)
