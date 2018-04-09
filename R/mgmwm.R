@@ -491,9 +491,10 @@ ci_mgmwm = function(model_ci = model_ci, mimu = mimu,
       }
       distrib_param[i,] = optim(starting_value, mgmwm_obj_function, model = model_ci, mimu = sampled_imu_obj)$par
 
-      distrib_param_trans[i,] = param_transform(model_ci, distrib_param[i,])
+      distrib_param[i,] = param_transform(model_ci, distrib_param[i,])
     }
   }
+  distrib_param
 }
 
 desc_decomp_theo_fun = function(model_hat, n_process){
@@ -535,4 +536,29 @@ desc_decomp_theo_fun = function(model_hat, n_process){
     }
   }
   out_desc
+}
+
+#'@export
+summary.mgmwm = function(object){
+
+
+
+  out = object$estimates
+
+  N = object$N
+
+  if(is.na(object$ci_low[1])){
+    print("Confidence intervals not computed")
+  }else{
+    out.coln = colnames(out)
+    out = cbind(out, object$ci_low, object$ci_high )
+    colnames(out) = c(out.coln, "CI Low", "CI High")
+  }
+
+
+
+  x = structure(list(estimates=out,
+                     obj_value= object$obj_value))
+
+  x
 }

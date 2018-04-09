@@ -28,11 +28,7 @@ model_selection = function(mimu, model, s_est = NULL,
   n_permutation = (dim(pair)[1])
 
   # Create model object with all possible nested model in model_max
-<<<<<<< HEAD
   model_nested = model_combination(model)
-=======
-  model_nested = model_combination(model = model)
->>>>>>> 95ab697f88c31c21fea40c0aa18ea64fce2ae1f1
 
   # List of model nested within model
   model_test = list()
