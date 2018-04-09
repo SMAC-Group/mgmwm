@@ -105,7 +105,7 @@ ui <- shinyUI(fluidPage(
              condition = "input.model.indexOf('AR')>-1",
              sliderInput("gm_nb", "Number of Gauss-Markov Processes", 1, 5, 2)
            ),
-
+           br(),
            checkboxInput("ci", "Compute confidence Intervals", FALSE),
            checkboxInput("test", "Compute near-stationarity test", FALSE),
 
@@ -429,7 +429,8 @@ server <- function(input, output, session) {
     N = length(v$all)
 
     if (N > 3){
-      par(mfrow = c(2,3))
+      par(mfrow = c(2,3), oma = c(2,2,0,0) + 0.1,
+          mar = c(2.5,2.5,1,1) + 0.1)
     }else{
      par(mfrow = c(1,3))
     }

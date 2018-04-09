@@ -293,7 +293,8 @@ plot.mimu = function(obj_list, split_plot = FALSE, add_legend = TRUE, xlab = NUL
                          ci_wv = ci_wv, point_cex = point_cex, point_pch = point_pch,
                          x_range = x_range, y_range = y_range, x_ticks = x_ticks,
                          x_labels = x_labels, y_labels = y_labels, x_at = x_at, y_at = y_at,
-                         y_ticks = y_ticks, nb_ticks_x = nb_ticks_x, nb_ticks_y = nb_ticks_y)
+                         y_ticks = y_ticks, nb_ticks_x = nb_ticks_x, nb_ticks_y = nb_ticks_y,
+                         cex_labels = 1.6)
 
     if (split_plot == FALSE){
       # -> compare_wvar_no_split
