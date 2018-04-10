@@ -366,16 +366,31 @@ plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
 
 
 
-model_WVIC_CI = function(test_model_selection, boot_ci = 500, alpha = 0.05, couleur_axis = FALSE){
+model_WVIC_CI = function(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = FALSE){
 
-  dec = test_model_selection$selection_decision
+  dec = obj_list$selection_decision
 
-  n_models = length(test_model_selection$model_name)
-  n_permutation = dim(test_model_selection$obj_out_sample)[1]
-  model_ord = order(test_model_selection$cv_wvic)
+  n_models = length(obj_list$model_name)
+  n_permutation = dim(obj_list$obj_out_sample)[1]
 
-  hues = seq(15, 375, length = n_models + 1)
-  couleur = hcl(h = hues, l = 65, c = 100, alpha = 1)[seq_len(n_models+1)]
+  scaled_cvwvic = obj_list$cv_wvic/min(obj_list$cv_wvic)
+  sub_sample = which(scaled_cvwvic < 5)
+
+
+  model_ord = order(obj_list$cv_wvic[sub_sample])
+
+  true_model = which.min(obj_list$cv_wvic[sub_sample])
+
+  obj_list$obj_out_sample = obj_list$obj_out_sample[,sub_sample]/obj_list$obj_out_sample[,true_model]
+
+  obj_list$obj_out_sample = obj_list$obj_out_sample[,-true_model]
+  obj_list$cv_wvic = obj_list$cv_wvic[-true_model]/min(obj_list$cv_wvic)
+
+
+  n_models_ploted = dim(obj_list$obj_out_sample)[2]
+
+  hues = seq(15, 375, length = n_models_ploted + 1)
+  couleur = hcl(h = hues, l = 65, c = 100, alpha = 1)[seq_len(n_models_ploted+1)]
 
   if (couleur_axis){
     col_desc = c("Black", couleur[3], couleur[5], couleur[7])
@@ -384,40 +399,40 @@ model_WVIC_CI = function(test_model_selection, boot_ci = 500, alpha = 0.05, coul
   }
   names(col_desc) = c("Model not appropriate", "Bigger selected model","Model selected", "Model selected cv-wvic")
 
-  matrix_ci_cvwvic = matrix(NA, boot_ci, n_models)
-  matrix_boot = matrix(NA,boot_ci, n_models)
+
+  matrix_ci_cvwvic = matrix(NA, boot_ci, n_models_ploted)
+  matrix_boot = matrix(NA,boot_ci, n_models_ploted)
 
   for (b in 1:boot_ci){
-    matrix_boot[b,] =  apply(test_model_selection$obj_out_sample[sample(1:n_permutation, replace = TRUE),],2,mean)
+    matrix_boot[b,] =  apply(obj_list$obj_out_sample[sample(1:n_permutation, replace = TRUE),],2,mean)
   }
 
-  sd_cvwvic = rep(NA,n_models)
-  ci_low = rep(NA,n_models)
-  ci_high = rep(NA,n_models)
+  sd_cvwvic = rep(NA,n_models_ploted)
+  ci_low = rep(NA,n_models_ploted)
+  ci_high = rep(NA,n_models_ploted)
   coef = qnorm(1-alpha/2)
-  for (i in 1:n_models){
+  for (i in 1:n_models_ploted){
     sd_cvwvic[i] = sd(matrix_boot[,i])
-    ci_low[i] = test_model_selection$cv_wvic[i] - coef*sd_cvwvic[i]
-    ci_high[i] = test_model_selection$cv_wvic[i] + coef*sd_cvwvic[i]
+    ci_low[i] = obj_list$cv_wvic[i] - coef*sd_cvwvic[i]
+    ci_high[i] = obj_list$cv_wvic[i] + coef*sd_cvwvic[i]
   }
-
 
   xlab = "CV-WVIC"
   ylab = " "
   main = "CI for CV-WVIC"
-  plot(NA, xlim = c(min(ci_low), max(ci_high)), ylim = c(1,n_models), xlab = "", ylab = ylab,
+  plot(NA, xlim = c(min(ci_low), max(ci_high)), ylim = c(1,n_models_ploted), ylab = ylab, xlab = NULL,
        xaxt = 'n', yaxt = 'n', bty = "n", ann = FALSE, log = "x")
   win_dim = par("usr")
   par(new = TRUE)
   plot(NA, xlim = c(min(ci_low), max(ci_high)), ylim = c(win_dim[3], win_dim[4] + 0.09*(win_dim[4] - win_dim[3])),
-       ylab = ylab, xlab = xlab, xaxt = 'n', yaxt = 'n', bty = "n", log = "x")
+       ylab = ylab, xlab = " ", xaxt = 'n', yaxt = 'n', bty = "n", log = "x")
   mtext(xlab, side = 1, line = 2.5)
   mtext(ylab, side = 2, line = 0)
   win_dim = par("usr")
 
   # Add grid
   grid(NULL, NA, lty = 1, col = "grey95")
-  abline(h = 1:n_models, lty = 1, col = "grey95")
+  abline(h = 1:n_models_ploted, lty = 1, col = "grey95")
 
   # Add title
   x_vec = 10^c(win_dim[1], win_dim[2], win_dim[2], win_dim[1])
@@ -431,20 +446,20 @@ model_WVIC_CI = function(test_model_selection, boot_ci = 500, alpha = 0.05, coul
   lines(x_vec[1:2], rep((win_dim[4] - 0.09*(win_dim[4] - win_dim[3])),2), col = "grey50")
   box(col = "grey50")
 
-  axis(1, padj = 0.3)
+  #axis(1, padj = 0.3)
 
   y_axis = axis(2, labels = FALSE, tick = FALSE)
-  y_axis = 1:n_models
+  y_axis = 1:n_models_ploted
 
-  for (i in 1:n_models){
-    axis(2, padj = 0.5, at = i, las = 1, labels = test_model_selection$model_name[model_ord[i]],
-         col.axis = col_desc[test_model_selection$selection_decision[model_ord[i]]])
+  for (i in 1:n_models_ploted){
+    axis(2, padj = 0.5, at = i, las = 1, labels = obj_list$model_name[model_ord[i]],
+         col.axis = col_desc[obj_list$selection_decision[model_ord[i]]])
   }
 
-  for (i in 1:n_models){
+  for (i in 1:n_models_ploted){
     lines(c(ci_low[model_ord[i]], ci_high[model_ord[i]]), c(i,i), col = couleur[i])
     points(c(ci_low[model_ord[i]], ci_high[model_ord[i]]), c(i,i), pch = "|", col = couleur[i])
-    points(test_model_selection$cv_wvic[model_ord[i]], i, pch = 16, cex = 1.5, col = couleur[i])
+    points(obj_list$cv_wvic[model_ord[i]], i, pch = 16, cex = 1.5, col = couleur[i])
   }
 
 }

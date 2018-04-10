@@ -15,25 +15,13 @@ library(wv)
 library(gmwm)
 library(simts)
 library(iterpc)
+library(shinydashboard)
 
 data(mtig1khrz)
 data(adis16405)
+data(kvh1750.gyro)
+data(kvh1750.acc)
 
-n1 = 100000
-n2 = 500000
-n3 = 1000000
-
-model1 = AR1(.995, sigma2 = 1e-6) + WN(.005) + RW (1e-7)
-Wt =  gen_gts(n3, model1)
-Xt =  gen_gts(n1, model1)
-Yt =  gen_gts(n2, model1)
-Zt =  gen_gts(n3, model1)
-
-test1 = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
-                 sensor.name = "MTiG - Gyro. X", exp.name = c("today", "yesterday", "a few days ago"))
-test2 = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
-                 sensor.name = "MTiG - Gyro. Y", exp.name = c("today", "yesterday", "a few days ago"))
-test = list("Gyro. X" = test1, "Gyro. Y" = test2)
 
 const.RENDER_PLOT_WIDTH = 1000
 const.RENDER_PLOT_HEIGHT = 600
@@ -50,6 +38,8 @@ const.degps_2_radps = 1/360 * 2*pi
 
 # constant default frequency for custom data
 const.DEFAULT_FREQ = 1 # [Hz]
+
+
 ui <- shinyUI(fluidPage(
 
   shinyjs::useShinyjs(),
@@ -63,7 +53,7 @@ ui <- shinyUI(fluidPage(
   tabsetPanel(id = "tabs",
               tabPanel("Model Data", plotOutput(outputId = "plot", height = const.FIGURE_PLOT_HEIGHT)),
               tabPanel("Selected Sensor", plotOutput(outputId = "plot2", height = const.FIGURE_PLOT_HEIGHT)),
-              tabPanel("Selected Model", plotOutput(outputId = "plot3", height = const.FIGURE_PLOT_HEIGHT)),
+              tabPanel("All models", plotOutput(outputId = "plot3", height = const.FIGURE_PLOT_HEIGHT)),
               tabPanel("Summary", verbatimTextOutput(outputId = "summ", placeholder = FALSE)),
               tabPanel("Tutorial", htmlOutput("tuto")),
               tabPanel("Help",
@@ -92,9 +82,10 @@ ui <- shinyUI(fluidPage(
     column(4,
 
            selectInput("imu_obj", "Select IMU file:",
-                       c("test" = "test",
-                         "ADIS 16405 imu 100Hz" = "adis16405",
-                         "MTI-G-710 imu 1k Hz" = "mtig1khrz"),
+                       c("ADIS 16405 imu 100Hz" = "adis16405",
+                         "MTI-G-710 imu 1k Hz" = "mtig1khrz",
+                         "KVH 1750 Accelerometer" = "kvh1750.acc",
+                         "KVH 1750 Gyroscopes" = "kvh1750.gyro"),
                        selected = 1),
 
            selectInput("sensors", "Select sensor", c("1"="1","2"="2", selected = 1)),
@@ -126,13 +117,7 @@ ui <- shinyUI(fluidPage(
            checkboxInput("test", "Compute near-stationarity test", FALSE),
 
 
-           actionButton("fit3", label = "Fit Model"),
-
-           conditionalPanel(
-             condition = "input.edit_intern == 1",
-             numericInput("num", label = "Number of Simu. for Starting Values", value = 10^5),
-             numericInput("seed", label = "Simulation seed", value = 2710)
-           )
+           actionButton("fit3", label = "Fit Model")
 
 
     ),
@@ -149,14 +134,9 @@ ui <- shinyUI(fluidPage(
            br(),
            selectInput("sel_mod", "Select Estimated Model", c("1"="1","2"="2", selected = 1)),
 
-           checkboxInput("rm", "Remove", FALSE),
-           checkboxInput("eq", "Eq", FALSE),
-
-           checkboxGroupInput("inCheckboxGroup", "Model category",
-                              c("Selected", "Equivalent", "All")),
-           selectInput("model_selection", "Select input",
-                       c("Item A", "Item B", "Item C"))
-
+           checkboxInput("rm", "Equivalent models", FALSE),
+           checkboxInput("eq", "Plot equivalent models", FALSE),
+           checkboxInput("compare", "Compare models", FALSE)
 
 
     )
@@ -351,13 +331,7 @@ server <- function(input, output, session) {
         model = 3*AR1()
       }
 
-      if (is.null(input$seed)){
-        input$seed = 1982
-      }
 
-      if (is.null(input$num)){
-        input$num = 10^5
-      }
       v$gmwm = mgmwm(mimu = Xt, model = model, CI = input$ci, stationarity_test = input$test)
       v$form = v$gmwm
       v$first_gmwm = FALSE
@@ -493,6 +467,8 @@ server <- function(input, output, session) {
     if (class(v$form) == "cvwvic"){
       if (input$eq){
         plot(v$form, type = "equivalent")
+      }else if (input$compare){
+        plot(v$form, type = "compare")
       }else{
         if (input$sel_mod != ""){
           plot(v$form, decomp = TRUE,  model = get_model())

@@ -41,6 +41,10 @@ make_mimu = function(..., freq, unit = NULL, sensor.name = NULL, exp.name = NULL
     obj_list = for_test
   }
 
+  if(length(obj_list) == 1){
+    warning(" You have provided one error signal.")
+  }
+
   obj_len  = length(obj_list)
   obj = list()
     for (i in 1:obj_len){
