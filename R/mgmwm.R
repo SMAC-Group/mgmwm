@@ -542,25 +542,190 @@ desc_decomp_theo_fun = function(model_hat, n_process){
   out_desc
 }
 
-#'@export
+#'@export summary.mgmwm
 summary.mgmwm = function(object){
 
   out = object$estimates
 
-  N = object$N
 
   if(is.na(object$ci_low[1])){
     print("Confidence intervals not computed")
   }else{
     out.coln = colnames(out)
     out = cbind(out, object$ci_low, object$ci_high )
-    colnames(out) = c(out.colnmimu$model_hat$desc == model$desc, "CI Low", "CI High")
+    colnames(out) = c(out.coln, "CI Low", "CI High")
   }
 
 
 
   x = structure(list(estimates=out,
-                obj_value= object$obj_value), class = "summary.mgmwm")
-
+                     obj_value= object$obj_value,
+                     near_stationarity_test = object$test_res,
+                     p_value_nr_test = object$p_value))
   x
 }
+
+#' @export
+param_name = function(model){
+
+  x = list()
+
+  counter = 1
+
+  for (j in 1:length(model$process.desc)){
+
+    # is quantization noise?
+    if (model$process.desc[j] == "QN"){
+      x[[counter]] = expression(paste(hat(Q)^2))
+      counter = counter + 1
+    }
+
+    # is white noise?
+    if (model$process.desc[j] == "WN"){
+      x[[counter]] =  expression(paste(hat(sigma)^2))
+      counter = counter + 1
+    }
+
+    # is AR1?
+    if (model$process.desc[j] == "AR1"){
+
+      x[[counter]] = expression(paste(hat(phi)))
+
+      counter = counter + 1
+
+    }
+
+    # is random walk?
+    if (model$process.desc[j] == "RW"){
+      x[[counter]] = expression(paste(hat(gamma)^2))
+      counter = counter + 1
+    }
+
+    # is random walk?
+    if (model$process.desc[j] == "SIGMA2"){
+      x[[counter]] =  expression(paste(hat(nu)^2))
+      counter = counter + 1
+    }
+
+    # is drift?
+    if (model$process.desc[j] == "DR"){
+      x[[counter]] = expression(paste(hat(omega)^2))
+      counter = counter + 1
+    }
+
+  }
+  x
+}
+
+
+
+#' @export plot_CI
+plot_CI = function(obj_list, units = NULL, xlab = NULL, ylab = NULL,
+                   col_dens = NULL, col_ci = NULL, nb_ticks_x = NULL,
+                   nb_ticks_y = NULL, ci_wv = NULL, point_cex = NULL,
+                   point_pch = NULL,col_line = NULL, ...){
+
+  n_param = obj_list$model_hat$plength
+
+  if(n_param <= 3){
+    par(mfrow=c(1,n_param), mar = c(3,3,3,2))
+  }else{
+    q  = ceiling(n_param/2)
+    par(mfrow=c(2,q), mar = c(3,3,3,2))
+  }
+
+  for (i in 1:n_param){
+
+    density_param = (density(na.omit(obj_list$distrib_param[,i])))
+
+
+
+    # Labels
+    if (is.null(xlab)){
+      xlab = obj_list$model_hat$process.desc[i]
+    }else{
+      xlab = xlab
+    }
+    ### to do
+    if (is.null(ylab)){
+      ylab = "Smoothed Density"
+    }else{
+      ylab = ylab
+    }
+
+    param_name_i = param_name(model = obj_list$model_hat)
+
+
+    main = param_name_i[[i]]
+
+
+    # Line and CI colors
+    if (is.null(col_dens)){
+      col_dens = hcl(h = 240, c = 65, l =70, alpha = 0.2, fixup = TRUE)
+    }
+
+    if (is.null(col_ci)){
+      col_ci = hcl(h = 210, l = 65, c = 100, alpha = 1)
+    }
+
+    # Line and CI colors
+    if (is.null(col_line)){
+      col_line = "darkblue"
+    }
+
+    # Range
+    x_range = c(obj_list$ci_low[[i]],obj_list$ci_high[[i]])
+    x_low = obj_list$ci_low[[i]] - obj_list$ci_low[[i]]/10
+    x_high = obj_list$ci_high[[i]] + obj_list$ci_high[[i]]/10
+
+    y_range = range(density_param$y)
+    y_low = min(y_range)
+    y_high = max(y_range)
+
+    x_ticks = obj_list$model_hat$theta[[i]]
+
+
+    x_labels =  obj_list$model_hat$process.desc[i]
+
+    # Main Plot
+    plot(NA, xlim = x_range, ylim = c(y_low, y_high), xlab = x_labels, ylab = ylab
+         , yaxt = 'n' , bty = "n", ann = FALSE)
+    win_dim = par("usr")
+
+    par(new = TRUE)
+
+    plot(NA, xlim = x_range, ylim = c(win_dim[3], win_dim[4] + 0.09*(win_dim[4] - win_dim[3])),
+         xlab = x_labels, ylab = ylab, xaxt = 'n', yaxt = 'n', bty = "n")
+    win_dim = par("usr")
+
+
+    # Add Title
+    x_vec = c(win_dim[1], win_dim[2], win_dim[2], win_dim[1])
+    y_vec = c(win_dim[4], win_dim[4],
+              win_dim[4] - 0.09*(win_dim[4] - win_dim[3]),
+              win_dim[4] - 0.09*(win_dim[4] - win_dim[3]))
+    polygon(x_vec, y_vec, col = "grey95", border = NA)
+    text(x = mean(c(win_dim[1], win_dim[2])), y = (win_dim[4] - 0.09/2*(win_dim[4] - win_dim[3])), main, cex = 1.3)
+
+    # Add Axes and Box
+    lines(x_vec[1:2], rep((win_dim[4] - 0.09*(win_dim[4] - win_dim[3])),2), col = 1)
+
+    #y_ticks = y_ticks[(2^y_ticks) < 10^(win_dim[4] - 0.09*(win_dim[4] - win_dim[3]))]
+    box()
+    lines(density_param$x,density_param$y, type = "l", col = col_line)
+    polygon(c(obj_list$ci_low[[i]],density_param$x[density_param$x>=obj_list$ci_low[[i]] & density_param$x<=obj_list$ci_high[[i]]],obj_list$ci_high[[i]])
+            ,c(obj_list$ci_low[[i]],density_param$y[density_param$x>=obj_list$ci_low[[i]] & density_param$x<=obj_list$ci_high[[i]]],obj_list$ci_hig[[i]]),
+            col=col_dens, border = F)
+    lines(rep(obj_list$model_hat$theta[[i]],2), c(win_dim[3],
+                                                  win_dim[4] - 0.09*(win_dim[4] - win_dim[3])),
+          col = "red", lwd = 2)
+
+  }
+  par(mfrow = c(1,1))
+}
+
+
+
+
+
+

@@ -6,7 +6,7 @@ n2 = 500000
 n3 = 1000000
 
 model1 = AR1(.995, sigma2 = 1e-6) + WN(.005) + RW (1e-7)
-model = AR1() + WN() + RW ()
+model = 2*AR1() + WN() + RW ()
 Wt =  gen_gts(n3, model1)
 Xt =  gen_gts(n1, model1)
 Yt =  gen_gts(n2, model1)

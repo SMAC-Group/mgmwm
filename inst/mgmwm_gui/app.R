@@ -15,12 +15,77 @@ library(wv)
 library(gmwm)
 library(simts)
 library(iterpc)
-library(shinydashboard)
 
 data(mtig1khrz)
 data(adis16405)
 data(kvh1750.gyro)
 data(kvh1750.acc)
+
+library(simts)
+library(imudata)
+library(mgmwm2)
+
+
+n1 = 10000
+n2 = 50000
+n3 = 100000
+n4 = 500000
+
+model1 = AR1(.995, sigma2 = 4e-6) + WN(.1) + RW (1e-8)
+
+Wt =  gen_gts(n3, model1)
+Xt =  gen_gts(n1, model1)
+Yt =  gen_gts(n2, model1)
+Zt =  gen_gts(n4, model1)
+
+
+
+test_data1 = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
+                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4","K5","K6"))
+
+Wt =  gen_gts(n3, model1)
+Xt =  gen_gts(n1, model1)
+Yt =  gen_gts(n2, model1)
+Zt =  gen_gts(n4, model1)
+
+test_data2 = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
+                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4","K5","K6"))
+
+Wt =  gen_gts(n3, model1)
+Xt =  gen_gts(n1, model1)
+Yt =  gen_gts(n2, model1)
+Zt =  gen_gts(n4, model1)
+
+test_data3 = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
+                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4","K5","K6"))
+
+Wt =  gen_gts(n3, model1)
+Xt =  gen_gts(n1, model1)
+Yt =  gen_gts(n2, model1)
+Zt =  gen_gts(n4, model1)
+
+test_data4 = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
+                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4","K5","K6"))
+
+Wt =  gen_gts(n3, model1)
+Xt =  gen_gts(n1, model1)
+Yt =  gen_gts(n2, model1)
+Zt =  gen_gts(n4, model1)
+
+test_data5 = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
+                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4","K5","K6"))
+
+Wt =  gen_gts(n3, model1)
+Xt =  gen_gts(n1, model1)
+Yt =  gen_gts(n2, model1)
+Zt =  gen_gts(n4, model1)
+
+test_data6 = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
+                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4","K5","K6"))
+
+
+test_data = list(test_data1,test_data2,test_data3,test_data4,test_data5,test_data6)
+names(test_data) = c("Gyro. X", "Gyro. Y","Gyro. Z", "Acc. X", "Acc. Y","Acc. Z")
 
 
 const.RENDER_PLOT_WIDTH = 1000
@@ -85,7 +150,8 @@ ui <- shinyUI(fluidPage(
                        c("ADIS 16405 imu 100Hz" = "adis16405",
                          "MTI-G-710 imu 1k Hz" = "mtig1khrz",
                          "KVH 1750 Accelerometer" = "kvh1750.acc",
-                         "KVH 1750 Gyroscopes" = "kvh1750.gyro"),
+                         "KVH 1750 Gyroscopes" = "kvh1750.gyro",
+                         "Test data set" = "test_data"),
                        selected = 1),
 
            selectInput("sensors", "Select sensor", c("1"="1","2"="2", selected = 1)),
@@ -99,7 +165,7 @@ ui <- shinyUI(fluidPage(
 
            uiOutput("choose_columns")
 
-           ),
+    ),
     column(4,
            checkboxGroupInput("model", "Select Latent Processes",
                               c("Quantization Noise" = "QN",
@@ -117,7 +183,8 @@ ui <- shinyUI(fluidPage(
            checkboxInput("test", "Compute near-stationarity test", FALSE),
 
 
-           actionButton("fit3", label = "Fit Model")
+           actionButton("fit3", label = "Fit Model"),
+           checkboxInput("plot_ci", "Plot CI", FALSE)
 
 
     ),
@@ -209,20 +276,20 @@ server <- function(input, output, session) {
     #  print(class(input$mod_sel))
 
     #  if (!is.null(input$mod_sel)){
-      #  v$user_selected_model = input$mod_sel
+    #  v$user_selected_model = input$mod_sel
     #    print("1111")
     #  }
 
-      #print(v$user_selected_model)
-      #if (v$user_selected_model != "" && (is.null(v$model_selection_model_selected_name) || v$user_selected_model != v$model_selection_model_selected_name)){
-      #  updateNavbarPage(session, "tabs", selected = "Selected Model")
-      #  print("4")
-      #  v$model_selection_model_selected_name = v$form$model_name[which(v$form$model_name %in% input$sel_mod)]
-      #  print("44")
-      #  print(v$model_selection_model_selected_name)
-      #  v$new_model_selection = TRUE
-      v$form$model_nested[[which(v$form$model_name %in% input$sel_mod)]]
-      #}
+    #print(v$user_selected_model)
+    #if (v$user_selected_model != "" && (is.null(v$model_selection_model_selected_name) || v$user_selected_model != v$model_selection_model_selected_name)){
+    #  updateNavbarPage(session, "tabs", selected = "Selected Model")
+    #  print("4")
+    #  v$model_selection_model_selected_name = v$form$model_name[which(v$form$model_name %in% input$sel_mod)]
+    #  print("44")
+    #  print(v$model_selection_model_selected_name)
+    #  v$new_model_selection = TRUE
+    v$form$model_nested[[which(v$form$model_name %in% input$sel_mod)]]
+    #}
     #}
   })
 
@@ -455,7 +522,11 @@ server <- function(input, output, session) {
 
   output$plot2 <- renderPlot({
     if (class(v$form) == "mgmwm"){
-      plot.mgmwm(v$form, decomp = TRUE)
+      if(input$plot_ci == TRUE){
+        plot_CI(v$form)
+      }else{
+        plot.mgmwm(v$form, decomp = TRUE)
+      }
     }else if (class(v$form) == "cvwvic"){
       plot(v$form)
     }else{
@@ -489,7 +560,7 @@ server <- function(input, output, session) {
       par(mfrow = c(2,3), oma = c(2,2,0,0) + 0.1,
           mar = c(2.5,2.5,1,1) + 0.1)
     }else{
-     par(mfrow = c(1,3))
+      par(mfrow = c(1,3))
     }
 
 
@@ -505,26 +576,18 @@ server <- function(input, output, session) {
 
   output$summ <- renderPrint({
     if (v$fit){
+      if(class(v$form) == "mgmwm"){
+        summary.mgmwm(v$form)
 
-      summmary_of_gmwm = list(v$form$estimate, v$form$obj_value,v$form$ci_low,v$form$ci_high,
-                              v$form$p_value, v$form$test_res)
-
-      if("ci" %in% input$ci){
-        # summmary_of_gmwm
-        cat("Objective Function: ", v$form$obj_value, "\n")
-        v$form$estimate
-        cat("CI: ", v$form$ci_low, "\n\n\n\n")
       } else {
-        cat("Objective Function: ", v$form$obj_value, "\n")
-        v$form$obj_value
-        v$form$estimate
+        summary.cvwvic(v$form)
       }
     }
   })
 
-  output$tuto <- renderUI({
-    tags$iframe(src = "https://www.youtube.com/embed/HPPj6viIBmU", height=400, width=600)
-  })
+  #output$tuto <- renderUI({
+  #  tags$iframe(src = "https://www.youtube.com/embed/HPPj6viIBmU", height=400, width=600)
+  #})
 }
 
 

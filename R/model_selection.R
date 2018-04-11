@@ -184,7 +184,7 @@ model_selection = function(mimu, model, s_est = NULL,
 
   selection_decision = rep(NA,n_models)
 
-   # Put the decision rule in model object
+  # Put the decision rule in model object
   for (i in 1:n_models){
     if(sum(equiv_mod) > 1){
       if(i == smallest_equiv){
@@ -229,7 +229,7 @@ model_selection = function(mimu, model, s_est = NULL,
   ## Create the ouput for the selected model
   estimate = as.matrix(model_hat$theta)
   rownames(estimate) = model_hat$process.desc
-  colnames(estimate) = "Estimates"
+  colnames(estimate) = "Estimates model selected"
 
   # Selected model objective function value
   obj_value = model_hat$obj_value
@@ -257,15 +257,15 @@ model_selection = function(mimu, model, s_est = NULL,
   options(warn=0)
 
   out_model_selection = structure(list(estimate = estimate,
-                                  obj_value = obj_value,
-                                  model_hat = model_hat,
-                                  model_nested = model_nested,
-                                  selection_decision = selection_decision,
-                                  cv_wvic = cv_wvic,
-                                  model_name = model_name,
-                                  scales_max_vec = scales_max_vec,
-                                  obj_out_sample = obj_out_sample,
-                                  mimu = mimu), class = "cvwvic")
+                                       obj_value = obj_value,
+                                       model_hat = model_hat,
+                                       model_nested = model_nested,
+                                       selection_decision = selection_decision,
+                                       cv_wvic = cv_wvic,
+                                       model_name = model_name,
+                                       scales_max_vec = scales_max_vec,
+                                       obj_out_sample = obj_out_sample,
+                                       mimu = mimu), class = "cvwvic")
   invisible(out_model_selection)
 
 }
@@ -305,7 +305,7 @@ plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
 
   for (i in 1:n_models){
     obj_plot[[i]] = list(mimu = obj_list$mimu, model_hat = obj_list$model_nested[[i]],
-                        scales_max_vec = obj_list$scales_max_vec)
+                         scales_max_vec = obj_list$scales_max_vec)
   }
 
   # Extract index of equivalent model
@@ -352,7 +352,7 @@ plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
           legend(legend_pos, legend_names, bty = "n", lwd = 1, pt.cex = 1.5, pch = p_cex_legend, col = col_legend)
         }
       }
-    #par(old.par)
+      #par(old.par)
     }else if (type == "compare"){
       model_WVIC_CI(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = FALSE, scale_ci_cvwvic = 5)
     }else{
@@ -379,8 +379,8 @@ model_WVIC_CI = function(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = F
   selected_model_index = which.min(obj_list$cv_wvic)
   selected_model_vector_wvic = as.vector(obj_list$obj_out_sample[,selected_model_index])
   mat_criteria = obj_list$obj_out_sample[,-selected_model_index]
-  mat_criteria_scaled = mat_criteria - matrix(rep(selected_model_vector_wvic, each = (n_models-1)),
-                           n_models_adj, n_models_adj, byrow = TRUE)
+  mat_criteria_scaled = mat_criteria - matrix(rep(selected_model_vector_wvic, each = n_models_adj),
+                                              n_permutation, n_models_adj, byrow = TRUE)
   model_names = obj_list$model_name[-selected_model_index]
   model_ord = order(obj_list$cv_wvic[-selected_model_index])
   model_names = model_names[model_ord]
@@ -414,7 +414,7 @@ model_WVIC_CI = function(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = F
     ci_high[i] = quantile(matrix_boot[,i], probs = 1 - alpha/2)
   }
 
-  xlab = "CV-WVIC"
+  xlab = paste("CV-WVIC (Model) - CV-WVIC (", obj_list$model_name[selected_model_index],")", sep="")
   ylab = " "
   main = "CI for CV-WVIC"
   par(oma = c(0.1,6.5,0,0))
@@ -460,6 +460,26 @@ model_WVIC_CI = function(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = F
     points(med_cv[i], i, pch = 16, cex = 1.5, col = couleur[i])
   }
 
+}
+
+
+#'@export summary.cvwvic
+summary.cvwvic = function(object){
+
+  out = round(object$cv_wvic, digits = 3)
+
+
+  ms  = matrix(NA, length(out), 1)
+  rownames(ms) = object$model_name
+  colnames(ms) = c("CV-WVIC")
+  ms[,1] =  out
+
+
+
+  x = structure(list(estimates = object$estimate,
+                     obj_value = object$obj_value,
+                     cv_wvic_nested_model = ms))
+  x
 }
 
 
