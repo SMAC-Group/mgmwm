@@ -52,7 +52,7 @@ param_name = function(model){
 }
 
 
-plot_CI = function(obj_list, units = NULL, xlab = NULL, ylab = NULL, main = NULL,
+plot_CI = function(obj_list, units = NULL, xlab = NULL, ylab = NULL,
                      col_dens = NULL, col_ci = NULL, nb_ticks_x = NULL,
                      nb_ticks_y = NULL, ci_wv = NULL, point_cex = NULL,
                      point_pch = NULL,col_line = NULL, ...){
@@ -86,10 +86,9 @@ plot_CI = function(obj_list, units = NULL, xlab = NULL, ylab = NULL, main = NULL
 
     param_name = param_name(obj_list$model_hat)
 
-    # Main Title
-    if (is.null(main)){
-      main = param_name[[i]]
-    }
+
+    main = param_name[[i]]
+
 
     # Line and CI colors
     if (is.null(col_dens)){
@@ -107,8 +106,8 @@ plot_CI = function(obj_list, units = NULL, xlab = NULL, ylab = NULL, main = NULL
 
     # Range
     x_range = c(obj_list$ci_low[[i]],obj_list$ci_high[[i]])
-    x_low = obj_list$ci_low[[i]]
-    x_high = obj_list$ci_high[[i]]
+    x_low = obj_list$ci_low[[i]] - obj_list$ci_low[[i]]/10
+    x_high = obj_list$ci_high[[i]] + obj_list$ci_high[[i]]/10
 
     y_range = range(density_param$y)
     y_low = min(y_range)
