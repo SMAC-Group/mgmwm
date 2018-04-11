@@ -136,7 +136,7 @@ plot.mimu = function(obj_list, split_plot = FALSE, add_legend = TRUE, xlab = NUL
     stop('No object given!')
   }else if (obj_len == 1){
     # -> plot.wvar
-    wv::plot.wvar(..., nb_ticks_x = nb_ticks_x, nb_ticks_y = nb_ticks_y)
+    plot.wvar(..., nb_ticks_x = nb_ticks_x, nb_ticks_y = nb_ticks_y)
   }else{
 
     if (is.null(xlab)){

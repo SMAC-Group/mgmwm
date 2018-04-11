@@ -358,8 +358,12 @@ mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max 
   obj_value = model_hat$obj_value
   names(obj_value) = "Value Objective Function"
 
+  options(warn=-1)
+
   # Cancel previous seed
   set.seed(as.numeric(format(Sys.time(),"%s"))/10)
+  options(warn=0)
+
 
   out = structure(list(estimates = estimates,
                        obj_value = obj_value,
@@ -550,7 +554,7 @@ summary.mgmwm = function(object){
   }else{
     out.coln = colnames(out)
     out = cbind(out, object$ci_low, object$ci_high )
-    colnames(out) = c(out.coln, "CI Low", "CI High")
+    colnames(out) = c(out.colnmimu$model_hat$desc == model$desc, "CI Low", "CI High")
   }
 
 

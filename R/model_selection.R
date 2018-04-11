@@ -101,12 +101,13 @@ model_selection = function(mimu, model, s_est = NULL,
     ## Select as starting value that minimize the mgmwm objective function.
     obj_value_starting_value = rep(NA, n_replicates)
     mgmwm_list = list()
+    options(warn=-1)
     for (j in 1:n_replicates){
       starting_value = inv_param_transform(model_nested[[i]], param_starting[j,])
       mgmwm_list[[j]] = optim(starting_value, mgmwm_obj_function, model = model_nested[[i]], mimu = mimu)
       obj_value_starting_value[j] = mgmwm_list[[j]]$value
     }
-
+    options(warn=0)
     mgmwm_full_dataset = mgmwm_list[[which.min(obj_value_starting_value)]]
 
 
@@ -156,6 +157,7 @@ model_selection = function(mimu, model, s_est = NULL,
   #Wilcoxon paired test on nested models
   wilcox_test = rep(FALSE,n_models)
 
+  options(warn=-1)
   # Compute the Wilcoxon test
   for (i in 1:n_models){
     if(model_complexity[mod_selected_cvwvic] >= model_complexity[i]){
@@ -164,6 +166,7 @@ model_selection = function(mimu, model, s_est = NULL,
                                    paired = T,alternative = "greater")$p.val
     }
   }
+  options(warn=0)
   # Decision rule on which model is equivalent
   test_wilcox_result = wilcox_test > alpha_paired_test
 
@@ -249,7 +252,9 @@ model_selection = function(mimu, model, s_est = NULL,
   model_hat$decomp_theo = decomp_theo
 
   # Cancel previous seed
+  options(warn=-1)
   set.seed(as.numeric(format(Sys.time(),"%s"))/10)
+  options(warn=0)
 
   out_model_selection = structure(list(estimate = estimate,
                                   obj_value = obj_value,
@@ -269,12 +274,12 @@ model_selection = function(mimu, model, s_est = NULL,
 #' @export plot.cvwvic
 plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
                        add_legend_mgwmw = TRUE, legend_pos = NULL,
-                       ylab_cvwvic = NULL, couleur_axis = FALSE){
+                       ylab = NULL, couleur_axis = FALSE){
 
 
   n_models = length(obj_list$model_nested)
 
-  if (is.ts.model(model)){
+  if (is.tsmodel(model)){
     if (!is.null(type)){
       warning("type set to NULL.")
     }
@@ -292,7 +297,7 @@ plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
     }
   }
 
-  if (is.null(ylab_cvwvic)){
+  if (is.null(ylab)){
     ylab = expression(paste("Wavelet Variance ", nu^2, sep = ""))
   }
 
@@ -309,7 +314,7 @@ plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
   if (!is.null(type)){
     if(type == "selected"){
       plot.mgmwm(obj_plot[[which(obj_list$selection_decision == "Model selected")]], decomp = decomp,
-                 add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = NULL)
+                 add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = ylab)
       title(main = "Model selected")
     }else if((type == "cvwvic")){
       if (sum((obj_list$selection_decision %in% "Model selected cv-wvic")) == 1){
@@ -318,7 +323,7 @@ plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
         compare_to = "Model selected"
       }
       plot.mgmwm(obj_plot[[which(obj_list$selection_decision == compare_to)]],
-                 decomp = decomp,add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = NULL)
+                 decomp = decomp,add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = ylab)
       title(main = compare_to)
     }else if(type == "equivalent"){
       decomp = FALSE
@@ -349,7 +354,7 @@ plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
       }
     #par(old.par)
     }else if (type == "compare"){
-      model_WVIC_CI(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = FALSE)
+      model_WVIC_CI(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = FALSE, scale_ci_cvwvic = 5)
     }else{
       stop("Please define a valid model")
     }
@@ -365,8 +370,8 @@ plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
 }
 
 
-
-model_WVIC_CI = function(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = FALSE){
+#' @export model_WVIC_CI
+model_WVIC_CI = function(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = FALSE,scale_ci_cvwvic = 5){
 
   dec = obj_list$selection_decision
 
@@ -374,7 +379,7 @@ model_WVIC_CI = function(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = F
   n_permutation = dim(obj_list$obj_out_sample)[1]
 
   scaled_cvwvic = obj_list$cv_wvic/min(obj_list$cv_wvic)
-  sub_sample = which(scaled_cvwvic < 5)
+  sub_sample = which(scaled_cvwvic < scale_ci_cvwvic)
 
 
   model_ord = order(obj_list$cv_wvic[sub_sample])
@@ -424,7 +429,7 @@ model_WVIC_CI = function(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = F
        xaxt = 'n', yaxt = 'n', bty = "n", ann = FALSE, log = "x")
   win_dim = par("usr")
   par(new = TRUE)
-  plot(NA, xlim = c(min(ci_low), max(ci_high)), ylim = c(win_dim[3], win_dim[4] + 0.09*(win_dim[4] - win_dim[3])),
+  plot(NA, xlim = c(min(ci_low) , max(ci_high)), ylim = c(win_dim[3], win_dim[4] + 0.09*(win_dim[4] - win_dim[3])),
        ylab = ylab, xlab = " ", xaxt = 'n', yaxt = 'n', bty = "n", log = "x")
   mtext(xlab, side = 1, line = 2.5)
   mtext(ylab, side = 2, line = 0)
@@ -435,7 +440,7 @@ model_WVIC_CI = function(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = F
   abline(h = 1:n_models_ploted, lty = 1, col = "grey95")
 
   # Add title
-  x_vec = 10^c(win_dim[1], win_dim[2], win_dim[2], win_dim[1])
+  x_vec = 10^c(win_dim[1] + win_dim[1] , win_dim[2], win_dim[2], win_dim[1]+ win_dim[1])
   y_vec = c(win_dim[4], win_dim[4],
             win_dim[4] - 0.09*(win_dim[4] - win_dim[3]),
             win_dim[4] - 0.09*(win_dim[4] - win_dim[3]))
