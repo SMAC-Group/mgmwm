@@ -10,7 +10,7 @@
 library(shiny)
 library(shinyjs)
 library(imudata)
-library(mgmwm2)
+library(mgmwm)
 library(wv)
 library(gmwm)
 library(simts)
@@ -183,8 +183,8 @@ ui <- shinyUI(fluidPage(
            checkboxInput("test", "Compute near-stationarity test", FALSE),
 
 
-           actionButton("fit3", label = "Fit Model"),
-           checkboxInput("plot_ci", "Plot CI", FALSE)
+           actionButton("fit3", label = "Fit Model")
+           #checkboxInput("plot_ci", "Plot CI", FALSE)
 
 
     ),
@@ -522,11 +522,11 @@ server <- function(input, output, session) {
 
   output$plot2 <- renderPlot({
     if (class(v$form) == "mgmwm"){
-      if(input$plot_ci == TRUE){
-        plot_CI(v$form)
-      }else{
+      # if(input$plot_ci == TRUE){
+      #   plot_CI(v$form)
+      # }else{
         plot.mgmwm(v$form, decomp = TRUE)
-      }
+      #}
     }else if (class(v$form) == "cvwvic"){
       plot(v$form)
     }else{

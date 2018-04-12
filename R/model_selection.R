@@ -414,15 +414,22 @@ model_WVIC_CI = function(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = F
     ci_high[i] = quantile(matrix_boot[,i], probs = 1 - alpha/2)
   }
 
+  ci_low_neg_index = which(ci_low <= 0)
+  ci_low_neg = ci_low[ci_low_neg_index]
+  ci_low_pos_index = which(ci_low > 0)
+  ci_low_pos =  ci_high[ci_low_pos_index]
+  left_bound = dmin(med_cv || ci_low_pos)
+
+
   xlab = paste("CV-WVIC (Model) - CV-WVIC (", obj_list$model_name[selected_model_index],")", sep="")
   ylab = " "
   main = "CI for CV-WVIC"
   par(oma = c(0.1,6.5,0,0))
-  plot(NA, xlim = c(min(ci_low), max(ci_high)), ylim = c(1,n_models_adj), ylab = ylab, xlab = NULL,
+  plot(NA, xlim = c(min(med_cv), max(ci_high)), ylim = c(1,n_models_adj), ylab = ylab, xlab = NULL,
        xaxt = 'n', yaxt = 'n', bty = "n", ann = FALSE, log = "x")
   win_dim = par("usr")
   par(new = TRUE)
-  plot(NA, xlim = c(min(ci_low) , max(ci_high)), ylim = c(win_dim[3], win_dim[4] + 0.09*(win_dim[4] - win_dim[3])),
+  plot(NA, xlim = c(min(med_cv) , max(ci_high)), ylim = c(win_dim[3], win_dim[4] + 0.09*(win_dim[4] - win_dim[3])),
        ylab = ylab, xlab = " ", xaxt = 'n', yaxt = 'n', bty = "n", log = "x")
   graphics::box()
   mtext(xlab, side = 1, line = 2.5)
@@ -454,7 +461,13 @@ model_WVIC_CI = function(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = F
          col.axis = col_desc[mod_des_ord[i]], cex.axis = 0.8)
   }
 
-  for (i in 1:n_models_adj){
+  for (i in ci_low_neg_index){
+    lines(c(10^(-30), ci_high[i]), c(i,i), col = couleur[i], lty = 2)
+    points(c(ci_low[i], ci_high[i]), c(i,i), pch = "|", col = couleur[i])
+    points(med_cv[i], i, pch = 16, cex = 1.5, col = couleur[i])
+  }
+
+  for (i in ci_low_pos_index){
     lines(c(ci_low[i], ci_high[i]), c(i,i), col = couleur[i])
     points(c(ci_low[i], ci_high[i]), c(i,i), pch = "|", col = couleur[i])
     points(med_cv[i], i, pch = 16, cex = 1.5, col = couleur[i])

@@ -625,7 +625,7 @@ plot_CI = function(obj_list, units = NULL, xlab = NULL, ylab = NULL,
                    nb_ticks_y = NULL, ci_wv = NULL, point_cex = NULL,
                    point_pch = NULL,col_line = NULL, ...){
 
-  n_param = obj_list$model_hat$plength
+  n_param = length(obj_list$model_hat$process.desc)
 
   if(n_param <= 3){
     par(mfrow=c(1,n_param), mar = c(3,3,3,2))
@@ -636,7 +636,7 @@ plot_CI = function(obj_list, units = NULL, xlab = NULL, ylab = NULL,
 
   for (i in 1:n_param){
 
-    density_param = (density(na.omit(obj_list$distrib_param[,i])))
+    density_param = (density(obj_list$distrib_param[,i]))
 
 
 
@@ -675,8 +675,8 @@ plot_CI = function(obj_list, units = NULL, xlab = NULL, ylab = NULL,
 
     # Range
     x_range = c(obj_list$ci_low[[i]],obj_list$ci_high[[i]])
-    x_low = obj_list$ci_low[[i]] - obj_list$ci_low[[i]]/10
-    x_high = obj_list$ci_high[[i]] + obj_list$ci_high[[i]]/10
+    x_low = obj_list$ci_low[[i]] - obj_list$ci_low[[i]]/100
+    x_high = obj_list$ci_high[[i]] + obj_list$ci_high[[i]]/100
 
     y_range = range(density_param$y)
     y_low = min(y_range)
@@ -710,11 +710,11 @@ plot_CI = function(obj_list, units = NULL, xlab = NULL, ylab = NULL,
     # Add Axes and Box
     lines(x_vec[1:2], rep((win_dim[4] - 0.09*(win_dim[4] - win_dim[3])),2), col = 1)
 
-    #y_ticks = y_ticks[(2^y_ticks) < 10^(win_dim[4] - 0.09*(win_dim[4] - win_dim[3]))]
+    ci_region = density_param$x>=obj_list$ci_low[[i]] & density_param$x<=obj_list$ci_high[[i]]
     box()
     lines(density_param$x,density_param$y, type = "l", col = col_line)
-    polygon(c(obj_list$ci_low[[i]],density_param$x[density_param$x>=obj_list$ci_low[[i]] & density_param$x<=obj_list$ci_high[[i]]],obj_list$ci_high[[i]])
-            ,c(obj_list$ci_low[[i]],density_param$y[density_param$x>=obj_list$ci_low[[i]] & density_param$x<=obj_list$ci_high[[i]]],obj_list$ci_hig[[i]]),
+    polygon(c(x_low,density_param$x[ci_region],x_high)
+            ,c(x_low,density_param$y[ci_region],x_high),
             col=col_dens, border = F)
     lines(rep(obj_list$model_hat$theta[[i]],2), c(win_dim[3],
                                                   win_dim[4] - 0.09*(win_dim[4] - win_dim[3])),
