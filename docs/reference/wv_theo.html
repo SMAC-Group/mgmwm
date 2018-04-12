@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • mgmwm</title>
+<title>Compute theroretical Wavelet Variance — wv_theo • mgmwm</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -25,7 +25,10 @@
 <link href="../pkgdown.css" rel="stylesheet">
 <script src="../jquery.sticky-kit.min.js"></script>
 <script src="../pkgdown.js"></script>
-<meta property="og:title" content="Function reference" />
+<meta property="og:title" content="Compute theroretical Wavelet Variance — wv_theo" />
+
+<meta property="og:description" content="Displays a plot of wavelet variances accounting for CI values.
+Compute theroretical Wavelet Variance" />
 
 <meta property="og:image" content="/logo.png" />
 <meta name="twitter:card" content="summary" />
@@ -45,7 +48,7 @@
   </head>
 
   <body>
-    <div class="container template-reference-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -91,47 +94,92 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Reference</h1>
+    <h1>Compute theroretical Wavelet Variance</h1>
+    <small>Source: <a href='https://github.com/SMAC-Group/mgmwm2/blob/master/R/mimu.R'><code>R/mimu.R</code></a>, <a href='https://github.com/SMAC-Group/mgmwm2/blob/master/R/utils.R'><code>R/utils.R</code></a></small>
+    <p class="hidden name"><code>wv_theo.Rd</code></p>
     </div>
 
-    <table class="ref-index">
+    
+    <p>Displays a plot of wavelet variances accounting for CI values.</p>
+<p>Compute theroretical Wavelet Variance</p>
+    
 
-    <colgroup>
-      <col class="alias" />
-      <col class="title" />
-    </colgroup>
+    <pre class="usage"><span class='co'># S3 method for mimu</span>
+<span class='fu'>plot</span>(<span class='no'>model</span>, <span class='no'>tau</span>)
 
-    <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      <tr>
-        <!--  -->
-        <td>
-          <p><code><a href="make_mimu.html">make_mimu()</a></code> </p>
-        </td>
-        <td><p>Creates a Multivariate IMU object.</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="mgmwm.html">mgmwm()</a></code> </p>
-        </td>
-        <td><p>Multivariate Generalized Method of Wavelet Moments (MGMWM) for IMUs</p></td>
-      </tr>
-    </tbody>
+<span class='fu'>wv_theo</span>(<span class='no'>model</span>, <span class='no'>tau</span>)</pre>
+    
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>model</th>
+      <td><p>A <code>model</code> object.</p></td>
+    </tr>
+    <tr>
+      <th>tau</th>
+      <td><p>A <code>vector</code> of \(2^1:number of scales\)</p></td>
+    </tr>
+    <tr>
+      <th>model</th>
+      <td><p>A <code>model</code> object.</p></td>
+    </tr>
+    <tr>
+      <th>tau</th>
+      <td><p>A <code>vector</code> of \(2^1:number of scales\)</p></td>
+    </tr>
     </table>
-  </div>
+    
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
+    <p><code>vector</code> of theoretical Wavelet Variance for a given model</p>
+<p><code>vector</code> of theoretical Wavelet Variance for a given model</p>
+    
+
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'>#' Xt = rnorm(n/4)
+Yt = rnorm(n/2) + cumsum(rnorm(n/2, 0, 10^(-2)))
+Zt = rnorm(n) + cumsum(rnorm(n, 0, 10^(-3)))
+obj = make_mimu(Xt, Yt, Zt, freq = 100, unit = "s",
+sensor.name = "MTiG - Gyro. X", exp.name = c("today", "yesterday", "a few days ago"))
+model = AR1() + WN()
+
+Extract the scales of first replicates of mimu \code{object} and compute tau
+tau = mimu[[1]]$tau
+wv_theo = function(model, tau)
+#' Xt = rnorm(n/4)
+Yt = rnorm(n/2) + cumsum(rnorm(n/2, 0, 10^(-2)))
+Zt = rnorm(n) + cumsum(rnorm(n, 0, 10^(-3)))
+obj = make_wvar_mimu_obj(Xt, Yt, Zt, freq = 100, unit = "s",
+sensor.name = "MTiG - Gyro. X", exp.name = c("today", "yesterday", "a few days ago"))
+model = AR1() + WN()
+
+Extract the scales of first replicates of mimu \code{object} and compute tau
+tau = 2^(1:length(sensor.name[[1]]$scales))
+wv_theo = function(model, tau)
+</div><div class='output co'>#&gt; <span class='error'>Error: &lt;text&gt;:8:9: unexpected symbol</span>
+#&gt; <span class='error'>7: </span>
+#&gt; <span class='error'>8: Extract the</span>
+#&gt; <span class='error'>           ^</span></div></pre>
+  </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#section-all-functions">All functions</a></li>
+      <li><a href="#arguments">Arguments</a></li>
+      
+      <li><a href="#value">Value</a></li>
+      
+      <li><a href="#examples">Examples</a></li>
     </ul>
+
+    <h2>Author</h2>
+    
+Stephane Guerrier, Nathanael Claussen, and Justin Lee
+
+Stephane Guerrier, Nathanael Claussen, and Justin Lee
+
   </div>
 </div>
 

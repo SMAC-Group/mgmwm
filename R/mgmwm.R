@@ -1,4 +1,4 @@
-# Copyright (C) 2014 - 2017  James Balamuta, Stephane Guerrier, Roberto Molinari, Gaetan Bakalli
+# Copyright (C) 2014 - 2018  Gaetan Bakalli, Stephane Guerrier.
 #
 # This file is part of classimu R Methods Package
 #
@@ -14,35 +14,26 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#' Multivariate Generalized Method of Wavelet Moments (MGMWM) for IMUs and ARMA
+#' Multivariate Generalized Method of Wavelet Moments (MGMWM) for IMUs
 #'
-#' (mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max = NULL,
-#stationarity_test = FALSE, B_stationarity_test= 500, alpha_near_test = NULL,
-#seed = 2710)
 #'
 #' Performs estimation of time series models by using the GMWM estimator.
-#' @param model          A \code{ts.model} object containing one of the allowed models.
-#' @param data           A \code{mimu} object.
-#' @param CI             A \code{bolean} to compute the confidence intervals for estimated parameters
-#' @param alpha_ci       A \code{double} between 0 and 1 that correspondings to the
-#'                       \eqn{\frac{\alpha}{2}}{alpha/2} value for the wavelet
-#'                       confidence intervals.
-#' @param n_boot_ci_max  A \code{double}
-#' @param robust     A \code{boolean} indicating whether to use the robust
-#'                   computation (\code{TRUE}) or not (\code{FALSE}).
-#' @param eff        A \code{double} between 0 and 1 that indicates the
-#'                   efficiency.
-#' @param G          An \code{integer} to sample the space for IMU and SSM
-#'                   models to ensure optimal identitability.
-#' @param K          An \code{integer} that controls how many times the
-#'                   bootstrapping procedure will be initiated.
-#' @param H          An \code{integer} that indicates how many different
-#'                   samples the bootstrap will be collect.
-#' @param seed       An \code{integer} that controls the reproducibility of the
-#'                   auto model selection phase.
-#' @param freq       A \code{double} that indicates the sampling frequency. By
-#'                   default, this is set to 1 and only is important if \code{GM()}
-#'                   is in the model
+#' @param mimu                  A \code{mimu} object.
+#' @param model                 A \code{ts.model} object containing one of the allowed models.
+#' @param CI                    A \code{bolean} to compute the confidence intervals for estimated parameters.
+#' @param alpha_ci              A \code{double} between 0 and 1 that correspondings to the
+#'                              \eqn{\frac{\alpha}{2}}{alpha/2} value for the parameter
+#'                              confidence intervals.
+#' @param n_boot_ci_max         A \code{double} representing the maximum number of bootstrap replicates
+#'                              for parameters confidence intervals computaion.
+#' @param stationarity_test     A \code{bolean} to compute the near-stationarity test.
+#' @param B_stationarity_test   A \code{double} representing the number of bootstrap replicates.
+#'                              for near-stationarity test computation.
+#' @param alpha_near_test       A \code{double} between 0 and 1 that correspondings to the
+#'                              rejection region for the p value in the near-stationarity test
+#' @param seed                  An \code{integer} that controls the reproducibility of the
+#'                              auto model selection phase.
+#'
 #' @return A \code{mgmwm} object with the structure:
 #' \describe{
 #'  \item{estimates}{Estimated Parameters Values from the MGMWM Procedure}

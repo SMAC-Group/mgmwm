@@ -2,46 +2,36 @@
 % Please edit documentation in R/mgmwm.R
 \name{mgmwm}
 \alias{mgmwm}
-\title{Multivariate Generalized Method of Wavelet Moments (MGMWM) for IMUs and ARMA}
+\title{Multivariate Generalized Method of Wavelet Moments (MGMWM) for IMUs}
 \usage{
 mgmwm(mimu, model = NULL, CI = FALSE, alpha_ci = NULL,
   n_boot_ci_max = NULL, stationarity_test = FALSE,
   B_stationarity_test = 500, alpha_near_test = NULL, seed = 2710)
 }
 \arguments{
+\item{mimu}{A \code{mimu} object.}
+
 \item{model}{A \code{ts.model} object containing one of the allowed models.}
 
-\item{CI}{A \code{bolean} to compute the confidence intervals for estimated parameters}
+\item{CI}{A \code{bolean} to compute the confidence intervals for estimated parameters.}
 
 \item{alpha_ci}{A \code{double} between 0 and 1 that correspondings to the
-\eqn{\frac{\alpha}{2}}{alpha/2} value for the wavelet
+\eqn{\frac{\alpha}{2}}{alpha/2} value for the parameter
 confidence intervals.}
 
-\item{n_boot_ci_max}{A \code{double}}
+\item{n_boot_ci_max}{A \code{double} representing the maximum number of bootstrap replicates
+for parameters confidence intervals computaion.}
+
+\item{stationarity_test}{A \code{bolean} to compute the near-stationarity test.}
+
+\item{B_stationarity_test}{A \code{double} representing the number of bootstrap replicates.
+for near-stationarity test computation.}
+
+\item{alpha_near_test}{A \code{double} between 0 and 1 that correspondings to the
+rejection region for the p value in the near-stationarity test}
 
 \item{seed}{An \code{integer} that controls the reproducibility of the
 auto model selection phase.}
-
-\item{data}{A \code{mimu} object.}
-
-\item{robust}{A \code{boolean} indicating whether to use the robust
-computation (\code{TRUE}) or not (\code{FALSE}).}
-
-\item{eff}{A \code{double} between 0 and 1 that indicates the
-efficiency.}
-
-\item{G}{An \code{integer} to sample the space for IMU and SSM
-models to ensure optimal identitability.}
-
-\item{K}{An \code{integer} that controls how many times the
-bootstrapping procedure will be initiated.}
-
-\item{H}{An \code{integer} that indicates how many different
-samples the bootstrap will be collect.}
-
-\item{freq}{A \code{double} that indicates the sampling frequency. By
-default, this is set to 1 and only is important if \code{GM()}
-is in the model}
 }
 \value{
 A \code{mgmwm} object with the structure:
@@ -61,12 +51,9 @@ A \code{mgmwm} object with the structure:
 }
 }
 \description{
-(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max = NULL,
+Performs estimation of time series models by using the GMWM estimator.
 }
 \details{
-Performs estimation of time series models by using the GMWM estimator.
-
-
 This function is under work. Some of the features are active. Others... Not so much.
 
 The V matrix is calculated by:

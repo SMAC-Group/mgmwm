@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Authors • mgmwm</title>
+<title>Objective function Multivariate GMWM — mgmwm_obj_function • mgmwm</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -22,10 +22,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
-<link href="pkgdown.css" rel="stylesheet">
-<script src="jquery.sticky-kit.min.js"></script>
-<script src="pkgdown.js"></script>
-<meta property="og:title" content="Authors" />
+<link href="../pkgdown.css" rel="stylesheet">
+<script src="../jquery.sticky-kit.min.js"></script>
+<script src="../pkgdown.js"></script>
+<meta property="og:title" content="Objective function Multivariate GMWM — mgmwm_obj_function" />
+
+<meta property="og:description" content="Compute the objective function Multivariate GMWM, based on an mimu object and a model" />
 
 <meta property="og:image" content="/logo.png" />
 <meta name="twitter:card" content="summary" />
@@ -45,7 +47,7 @@
   </head>
 
   <body>
-    <div class="container template-authors">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -56,7 +58,7 @@
         <span class="icon-bar"></span>
       </button>
       <span class="navbar-brand">
-        <a class="navbar-link" href="index.html">mgmwm</a>
+        <a class="navbar-link" href="../index.html">mgmwm</a>
         <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.1.0</span>
       </span>
     </div>
@@ -64,13 +66,13 @@
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li>
-  <a href="index.html">
+  <a href="../index.html">
     <span class="fa fa-home fa-lg"></span>
      
   </a>
 </li>
 <li>
-  <a href="reference/index.html">Reference</a>
+  <a href="../reference/index.html">Reference</a>
 </li>
       </ul>
       
@@ -91,30 +93,56 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Authors</h1>
+    <h1>Objective function Multivariate GMWM</h1>
+    <small>Source: <a href='https://github.com/SMAC-Group/mgmwm2/blob/master/R/utils.R'><code>R/utils.R</code></a></small>
+    <p class="hidden name"><code>mgmwm_obj_function.Rd</code></p>
     </div>
 
-    <ul class="list-unstyled">
-      <li>
-        <p><strong>Gaetan Bakalli</strong>. Author, maintainer. 
-        </p>
-      </li>
-      <li>
-        <p><strong>Stephane Guerrier</strong>. Author. 
-        </p>
-      </li>
-      <li>
-        <p><strong>Ahmed Radi</strong>. Contributor. 
-        </p>
-      </li>
-    </ul>
+    
+    <p>Compute the objective function Multivariate GMWM, based on an <code>mimu</code> object and a <code>model</code></p>
+    
+
+    <pre class="usage"><span class='fu'>mgmwm_obj_function</span>(<span class='no'>theta</span>, <span class='no'>model</span>, <span class='no'>mimu</span>)</pre>
+    
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>theta</th>
+      <td><p>A <code>vector</code> of parameter from a model.</p></td>
+    </tr>
+    <tr>
+      <th>model</th>
+      <td><p>A model <code>object</code> of class <code>ts.model</code>.</p></td>
+    </tr>
+    <tr>
+      <th>mimu</th>
+      <td><p>A mimu <code>object</code>.</p></td>
+    </tr>
+    </table>
+    
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p><code>numeric</code> value of the objective function</p>
+    
 
   </div>
+  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
+    <h2>Contents</h2>
+    <ul class="nav nav-pills nav-stacked">
+      <li><a href="#arguments">Arguments</a></li>
+      
+      <li><a href="#value">Value</a></li>
+          </ul>
 
+    <h2>Author</h2>
+    
+Gaetan Bakalli
+
+  </div>
 </div>
-
 
       <footer>
       <div class="copyright">
