@@ -19,7 +19,7 @@ To install the `mgmwm` package, there is currently one option: [GitHub](https://
 
 For users who are interested in having the latest developments, this option is ideal. Though, more dependancies are required to run a stable version of the package. Most importantly, users **must** have a compiler installed on their machine that is compatible with R (e.g. Clang).
 
-*The setup to obtain the development version of `classimu` is platform dependent.*
+*The setup to obtain the development version of `mgmwm` is platform dependent.*
 
 ### Requirements and Dependencies
 
