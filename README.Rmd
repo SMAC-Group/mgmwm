@@ -11,7 +11,7 @@ knitr::opts_chunk$set(
   fig.path = "man/figures/README-"
 )
 
-library(classimu)
+library(mgmwm)
 ```
 
 [![Travis-CI Build Status](https://travis-ci.org/SMAC-Group/classimu.svg?branch=master)](https://travis-ci.org/SMAC-Group/classimu)
