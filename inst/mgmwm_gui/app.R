@@ -41,7 +41,7 @@ Zt =  gen_gts(n4, model1)
 
 
 test_data1 = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
-                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4","K5","K6"))
+                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4"))
 
 Wt =  gen_gts(n3, model1)
 Xt =  gen_gts(n1, model1)
@@ -49,7 +49,7 @@ Yt =  gen_gts(n2, model1)
 Zt =  gen_gts(n4, model1)
 
 test_data2 = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
-                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4","K5","K6"))
+                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4"))
 
 Wt =  gen_gts(n3, model1)
 Xt =  gen_gts(n1, model1)
@@ -57,7 +57,7 @@ Yt =  gen_gts(n2, model1)
 Zt =  gen_gts(n4, model1)
 
 test_data3 = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
-                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4","K5","K6"))
+                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4"))
 
 Wt =  gen_gts(n3, model1)
 Xt =  gen_gts(n1, model1)
@@ -65,7 +65,7 @@ Yt =  gen_gts(n2, model1)
 Zt =  gen_gts(n4, model1)
 
 test_data4 = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
-                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4","K5","K6"))
+                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4"))
 
 Wt =  gen_gts(n3, model1)
 Xt =  gen_gts(n1, model1)
@@ -73,7 +73,7 @@ Yt =  gen_gts(n2, model1)
 Zt =  gen_gts(n4, model1)
 
 test_data5 = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
-                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4","K5","K6"))
+                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4"))
 
 Wt =  gen_gts(n3, model1)
 Xt =  gen_gts(n1, model1)
@@ -81,7 +81,7 @@ Yt =  gen_gts(n2, model1)
 Zt =  gen_gts(n4, model1)
 
 test_data6 = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
-                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4","K5","K6"))
+                       sensor.name = "Testing data", exp.name = c("K1", "K2", "K3", "K4"))
 
 
 test_data = list(test_data1,test_data2,test_data3,test_data4,test_data5,test_data6)
@@ -176,7 +176,7 @@ ui <- shinyUI(fluidPage(
                               selected = "WN"),
            conditionalPanel(
              condition = "input.model.indexOf('AR')>-1",
-             sliderInput("gm_nb", "Number of Gauss-Markov Processes", 1, 5, 2)
+             sliderInput("gm_nb", "Number of Auto-Regressive Processes", 1, 5, 2)
            ),
            br(),
            checkboxInput("ci", "Compute confidence Intervals", FALSE),
@@ -585,9 +585,9 @@ server <- function(input, output, session) {
     }
   })
 
-  #output$tuto <- renderUI({
-  #  tags$iframe(src = "https://www.youtube.com/embed/HPPj6viIBmU", height=400, width=600)
-  #})
+  output$tuto <- renderUI({
+    tags$iframe(src = "https://www.youtube.com/embed/Rj-P-vu_7aI", height=400, width=600)
+  })
 }
 
 
