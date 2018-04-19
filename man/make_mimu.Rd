@@ -18,6 +18,15 @@ make_mimu(..., freq, unit = NULL, sensor.name = NULL, exp.name = NULL,
 
 \item{units}{A \code{string} value with unit of IMU.}
 }
+\value{
+A \code{mimu} object with the structure:
+\describe{
+\item{data}{original error signal for imu}
+\item{variance}{Data empirical Wavelet Variance}
+\item{ci_low}{Lower Confidence Interval for Wavelet Variance}
+\item{ci_high}{Upper Confidence Intervalfor Wavelet Variance}
+\item{scales}{Scales of the Wavelet Variance}}
+}
 \description{
 This function creates a multivariate IMU or MIMU object, combining multiple replicates of the
 same inertial sensor.

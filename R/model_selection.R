@@ -1,13 +1,29 @@
+# Copyright (C) 2014 - 2018  Gaetan Bakalli, Stephane Guerrier.
+#
+# This file is part of classimu R Methods Package
+#
+# The `mgmwm` R package is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# The `mgmwm` R package is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+#' Multivariate Generalized Method of Wavelet Moments (MGMWM) for IMUs
+#'
 #' @export
 #' @import progress
-model_selection = function(mimu, model, s_est = NULL,
-                           alpha_paired_test = NULL, seed = 2710){
+model_selection = function(mimu, model, s_est = NULL, alpha_ci_cvwvic = NULL,
+                           b_ci_wvic = 500, seed = 2710){
 
   # Level of confidence for Wilcoxon paired test
-  if(is.null(alpha_paired_test)){
-    alpha_paired_test = .05
+  if(is.null(alpha_ci_cvwvic)){
+    alpha_ci_cvwvic = .05
   }
 
   # Number of replicates
@@ -154,58 +170,62 @@ model_selection = function(mimu, model, s_est = NULL,
   # Compute the average on all permutation of the out of sample WVIC
   mod_selected_cvwvic = which.min(cv_wvic)
 
-  #Wilcoxon paired test on nested models
-  wilcox_test = rep(FALSE,n_models)
 
-  options(warn=-1)
-  # Compute the Wilcoxon test
-  for (i in 1:n_models){
-    if(model_complexity[mod_selected_cvwvic] >= model_complexity[i]){
-      #Compute the p-value for asll nested model
-      wilcox_test[i] = wilcox.test(obj_out_sample[,i],obj_out_sample[,mod_selected_cvwvic],
-                                   paired = T,alternative = "greater")$p.val
-    }
+  ############## Redefine equivalent models #####################
+
+
+
+  # Create number of model for which to plot adjusted CI
+  n_models_adj = n_models - 1
+
+  # Extract vector of out-of-sample wvic for selected model
+  selected_model_vector_wvic = as.vector(obj_out_sample[,mod_selected_cvwvic])
+
+  # define the new matrix without selected model
+  mat_criteria = obj_out_sample[,-mod_selected_cvwvic]
+
+  # substract the vector of objective function from selected model
+  mat_criteria_scaled = mat_criteria - matrix(rep(selected_model_vector_wvic, each = n_models_adj),
+                                              n_permutation, n_models_adj, byrow = TRUE)
+
+  # Initialize
+  matrix_boot_wvic = matrix(NA,b_ci_wvic, n_models_adj)
+
+  for (b in 1:b_ci_wvic){
+    matrix_boot_wvic[b,] =  apply(mat_criteria_scaled[sample(1:n_permutation, replace = TRUE),],2,mean)
   }
-  options(warn=0)
-  # Decision rule on which model is equivalent
-  test_wilcox_result = wilcox_test > alpha_paired_test
 
-  # Which model are equivalent in the sense of Wilcoxon test
-  equiv_mod = which(test_wilcox_result)
+  ci_low_wvic = rep(NA,n_models_adj)
+  ci_high_wvic = rep(NA,n_models_adj)
+  med_wvic = rep(NA,n_models_adj)
 
-  # Which model is the smallest in terms of parameter
-  smallest_equiv = (min(model_complexity[test_wilcox_result]) == model_complexity) & test_wilcox_result
-
-  # If there is more than one model, pick the one with the samllest cvwvic
-  if (sum(smallest_equiv) > 1){
-    smallest_equiv = (min(cv_wvic[smallest_equiv]) == cv_wvic) & smallest_equiv
+  for (i in 1:n_models_adj){
+    med_wvic[i] = quantile(matrix_boot_wvic[,i], probs = 0.5)
+    ci_low_wvic[i] = quantile(matrix_boot_wvic[,i], probs = alpha_ci_cvwvic/2)
+    ci_high_wvic[i] = quantile(matrix_boot_wvic[,i], probs = 1 - alpha_ci_cvwvic/2)
   }
-  smallest_equiv = which(smallest_equiv)
+
+  ############## Redefine equivalent models
 
   selection_decision = rep(NA,n_models)
+  selection_decision[mod_selected_cvwvic] = "Model selected"
+  selection_decision_seq = which(is.na(selection_decision))
+  model_hat =  model_nested[[i]]
 
   # Put the decision rule in model object
-  for (i in 1:n_models){
-    if(sum(equiv_mod) > 1){
-      if(i == smallest_equiv){
-        selection_decision[i] = "Model selected"
-        model_hat =  model_nested[[i]]
-      }else if (i == equiv_mod && i != mod_selected_cvwvic){
-        selection_decision[i] = "Bigger equivalent model"
-      }else if (i == mod_selected_cvwvic){
-        selection_decision[i] = "Model selected cv-wvic"
+  for (i in 1:n_models_adj){
+    if (ci_low_wvic[i] <=0){
+      if(model_complexity[selection_decision_seq[i]] <= model_complexity[mod_selected_cvwvic]){
+        selection_decision[selection_decision_seq[i]] = "Equivalent model"
       }else{
-        selection_decision[i] = "Model not appropriate"
+        selection_decision[selection_decision_seq[i]] = "Bigger equivalent model"
       }
     }else{
-      if(i == mod_selected_cvwvic){
-        selection_decision[i] = "Model selected"
-        model_hat =  model_nested[[i]]
-      }else{
-        selection_decision[i] = "Model not appropriate"
-      }
+      selection_decision[selection_decision_seq[i]] = "Model not appropriate"
     }
+  }
 
+  for (i in 1:n_models){
     # WV implied by the parameter
     model_nested[[i]]$wv_implied = wv_theo(model_nested[[i]], tau_max_vec)
 
@@ -217,7 +237,6 @@ model_selection = function(mimu, model, s_est = NULL,
     for (j in 1:length(model_nested[[i]]$desc)){
       decomp_theo[[j]] =  wv_theo(model_nested[[i]]$desc_decomp_theo[[j]], tau_max_vec)
     }
-
     model_nested[[i]]$decomp_theo = decomp_theo
   }
 
@@ -262,6 +281,9 @@ model_selection = function(mimu, model, s_est = NULL,
                                        model_nested = model_nested,
                                        selection_decision = selection_decision,
                                        cv_wvic = cv_wvic,
+                                       med_wvic = med_wvic,
+                                       ci_low_wvic = ci_low_wvic,
+                                       ci_high_wvic = ci_high_wvic,
                                        model_name = model_name,
                                        scales_max_vec = scales_max_vec,
                                        obj_out_sample = obj_out_sample,
@@ -316,19 +338,10 @@ plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
       plot.mgmwm(obj_plot[[which(obj_list$selection_decision == "Model selected")]], decomp = decomp,
                  add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = ylab)
       title(main = "Model selected")
-    }else if((type == "cvwvic")){
-      if (sum((obj_list$selection_decision %in% "Model selected cv-wvic")) == 1){
-        compare_to = "Model selected cv-wvic"
-      }else{
-        compare_to = "Model selected"
-      }
-      plot.mgmwm(obj_plot[[which(obj_list$selection_decision == compare_to)]],
-                 decomp = decomp,add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = ylab)
-      title(main = compare_to)
     }else if(type == "equivalent"){
       decomp = FALSE
 
-      index_equiv = which(obj_list$selection_decision == "Model selected" | obj_list$selection_decision == "Model selected cv-wvic" | obj_list$selection_decision == "Bigger equivalent model")
+      index_equiv = which(obj_list$selection_decision == "Model selected" | obj_list$selection_decision == "Equivalent model")
 
       plot(obj_plot[[1]]$mimu, add_legend = FALSE, transparency_wv = 0.4, transparency_ci = 0.05, ylab = ylab)
 
@@ -352,9 +365,10 @@ plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
           legend(legend_pos, legend_names, bty = "n", lwd = 1, pt.cex = 1.5, pch = p_cex_legend, col = col_legend)
         }
       }
-      #par(old.par)
-    }else if (type == "compare"){
-      model_WVIC_CI(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = FALSE, scale_ci_cvwvic = 5)
+    }else if (type == "wvic_all"){
+      model_WVIC_CI(obj_list, type = type)
+    }else if (type == "wvic_equivalent"){
+      model_WVIC_CI(obj_list, type = type)
     }else{
       stop("Please define a valid model")
     }
@@ -371,108 +385,163 @@ plot.cvwvic = function(obj_list, decomp = TRUE, type = NULL, model = NULL,
 
 
 #' @export model_WVIC_CI
-model_WVIC_CI = function(obj_list, boot_ci = 500, alpha = 0.05, couleur_axis = FALSE,scale_ci_cvwvic = 5){
+model_WVIC_CI = function(obj_list, type = "wvic_all"){
 
+  # Compute the number of model to plot
   n_models = length(obj_list$model_name)
   n_models_adj = n_models -1
-  n_permutation = dim(obj_list$obj_out_sample)[1]
+
+  # Extract index of selectec model
   selected_model_index = which.min(obj_list$cv_wvic)
-  selected_model_vector_wvic = as.vector(obj_list$obj_out_sample[,selected_model_index])
-  mat_criteria = obj_list$obj_out_sample[,-selected_model_index]
-  mat_criteria_scaled = mat_criteria - matrix(rep(selected_model_vector_wvic, each = n_models_adj),
-                                              n_permutation, n_models_adj, byrow = TRUE)
-  model_names = obj_list$model_name[-selected_model_index]
+
+  # Order models with respect to the wvic
   model_ord = order(obj_list$cv_wvic[-selected_model_index])
+
+  #Order model name
+  model_names = obj_list$model_name[-selected_model_index]
   model_names = model_names[model_ord]
-  mat_criteria_scaled = mat_criteria_scaled[,model_ord]
+
+  # Order model description
   mod_des = obj_list$selection_decision[-selected_model_index]
   mod_des_ord = mod_des[model_ord]
+
+  # Order median and ci
+  med_wvic_ord = obj_list$med_wvic[model_ord]
+
+  # Order median and ci
+  ci_low_wvic_ord = obj_list$ci_low_wvic[model_ord]
+
+  # Order median and ci
+  ci_high_wvic_ord = obj_list$ci_high_wvic[model_ord]
+
+
 
   hues = seq(15, 375, length = n_models)
   couleur = hcl(h = hues, l = 65, c = 100, alpha = 1)[seq_len(n_models)]
 
-  if (couleur_axis){
-    col_desc = c("Black", couleur[3], couleur[5], couleur[7])
-  }else{
-    col_desc = rep("Black",4)
+  if(type == "wvic_all"){
+
+
+    col_desc = c("Black", "Black", couleur[3])
+
+    names(col_desc) = c("Model not appropriate", "Bigger equivalent model", "Equivalent model")
+
+
+    ci_low_neg_index = which(ci_low_wvic_ord <= 0)
+    ci_low_neg = ci_low_wvic_ord[ci_low_neg_index]
+    ci_low_pos_index = which(ci_low_wvic_ord > 0)
+    ci_low_pos =  ci_high_wvic_ord[ci_low_pos_index]
+    left_bound = min(med_wvic_ord)
+
+
+    xlab = paste("CV-WVIC (Model) - CV-WVIC (", obj_list$model_name[selected_model_index],")", sep="")
+    ylab = " "
+    main = "CI for CV-WVIC"
+    par(oma = c(0.1,6.5,0,0))
+    plot(NA, xlim = c(left_bound, max(ci_high_wvic_ord)), ylim = c(1,n_models_adj), ylab = ylab, xlab = NULL,
+         xaxt = 'n', yaxt = 'n', bty = "n", ann = FALSE, log = "x")
+    win_dim = par("usr")
+    par(new = TRUE)
+    plot(NA, xlim = c(left_bound , max(ci_high_wvic_ord)), ylim = c(win_dim[3], win_dim[4] + 0.09*(win_dim[4] - win_dim[3])),
+         ylab = ylab, xlab = " ", xaxt = 'n', yaxt = 'n', bty = "n", log = "x")
+    graphics::box()
+    mtext(xlab, side = 1, line = 2.5)
+    mtext(ylab, side = 2, line = 0)
+    win_dim = par("usr")
+
+    # Add grid
+    grid(NULL, NA, lty = 1, col = "grey95")
+    abline(h = 1:n_models_adj, lty = 1, col = "grey95")
+
+    # Add title
+    x_vec = 10^c(win_dim[1] , win_dim[2], win_dim[2], win_dim[1])
+    y_vec = c(win_dim[4], win_dim[4],
+              win_dim[4] - 0.09*(win_dim[4] - win_dim[3]),
+              win_dim[4] - 0.09*(win_dim[4] - win_dim[3]))
+    polygon(x_vec, y_vec, col = "grey95", border = NA)
+    text(x = 10^mean(c(win_dim[1], win_dim[2])), y = (win_dim[4] - 0.09/2*(win_dim[4] - win_dim[3])), main)
+
+    # Add axes and box
+    lines(x_vec[1:2], rep((win_dim[4] - 0.09*(win_dim[4] - win_dim[3])),2), col = "grey50")
+
+    axis(1, padj = 0.3)
+
+    y_axis = axis(2, labels = FALSE, tick = FALSE)
+    y_axis = 1:n_models_adj
+
+    for (i in 1:n_models_adj){
+      axis(2, padj = 0.5, at = i, las = 1, labels = model_names[i],
+      col.axis = col_desc[mod_des_ord[i]], cex.axis = 0.8)
+    }
+
+    for (i in ci_low_neg_index){
+      lines(c(10^(-30), ci_high_wvic_ord[i]), c(i,i), col = couleur[i], lty = 2)
+      points(c(ci_low_wvic_ord[i], ci_high_wvic_ord[i]), c(i,i), pch = "|", col = couleur[i])
+      points(med_wvic_ord[i], i, pch = 16, cex = 1.5, col = couleur[i])
+    }
+
+    for (i in ci_low_pos_index){
+      lines(c(ci_low_wvic_ord[i], ci_high_wvic_ord[i]), c(i,i), col = couleur[i])
+      points(c(ci_low_wvic_ord[i], ci_high_wvic_ord[i]), c(i,i), pch = "|", col = couleur[i])
+      points(med_wvic_ord[i], i, pch = 16, cex = 1.5, col = couleur[i])
+    }
+  }else if(type == "wvic_equivalent"){
+
+    mod_equivalent_ci_index = which(mod_des_ord == "Equivalent model")
+
+    n_models_equiv = length(mod_equivalent_ci_index)
+
+    med_equivalent_ci = med_wvic_ord[mod_equivalent_ci_index]
+    ci_low_equivalent_ci = ci_low_wvic_ord[mod_equivalent_ci_index]
+    ci_high_equivalent_ci = ci_high_wvic_ord[mod_equivalent_ci_index]
+    model_names_equivalent_ci = model_names[mod_equivalent_ci_index]
+
+
+    xlab = paste("CV-WVIC (Model) - CV-WVIC (", obj_list$model_name[selected_model_index],")", sep="")
+    ylab = " "
+    main = "CI for CV-WVIC"
+    par(oma = c(0.1,6.5,0,0))
+    plot(NA, xlim = c(min(ci_low_equivalent_ci), max(ci_high_equivalent_ci)), ylim = c(1,n_models_equiv), ylab = ylab, xlab = NULL,
+         xaxt = 'n', yaxt = 'n', bty = "n", ann = FALSE)
+    win_dim = par("usr")
+    par(new = TRUE)
+    plot(NA, xlim = c(min(ci_low_equivalent_ci) , max(ci_high_equivalent_ci)), ylim = c(win_dim[3], win_dim[4] + 0.09*(win_dim[4] - win_dim[3])),
+         ylab = ylab, xlab = " ", xaxt = 'n', yaxt = 'n', bty = "n")
+    graphics::box()
+    mtext(xlab, side = 1, line = 2.5)
+    mtext(ylab, side = 2, line = 0)
+    win_dim = par("usr")
+
+    # Add grid
+    grid(NULL, NA, lty = 1, col = "grey95")
+    abline(h = 1:n_models_equiv, lty = 1, col = "grey95")
+
+    # Add title
+    x_vec = c(win_dim[1] , win_dim[2], win_dim[2], win_dim[1])
+    y_vec = c(win_dim[4], win_dim[4],
+              win_dim[4] - 0.09*(win_dim[4] - win_dim[3]),
+              win_dim[4] - 0.09*(win_dim[4] - win_dim[3]))
+    polygon(x_vec, y_vec, col = "grey95", border = NA)
+    text(x = mean(c(win_dim[1], win_dim[2])), y = (win_dim[4] - 0.09/2*(win_dim[4] - win_dim[3])), main)
+
+    # Add axes and box
+    lines(x_vec[1:2], rep((win_dim[4] - 0.09*(win_dim[4] - win_dim[3])),2), col = "grey50")
+
+    axis(1, padj = 0.3)
+
+    y_axis = axis(2, labels = FALSE, tick = FALSE)
+    y_axis = 1:n_models_equiv
+
+    for (i in 1:n_models_equiv){
+      axis(2, padj = 0.5, at = i, las = 1, labels = model_names_equivalent_ci[i])
+    }
+
+    for (i in 1:n_models_equiv){
+      lines(c(ci_low_equivalent_ci[i], ci_high_equivalent_ci[i]), c(i,i), col = couleur[i], lty = 2)
+      points(c(ci_low_equivalent_ci[i], ci_high_equivalent_ci[i]), c(i,i), pch = "|", col = couleur[i])
+      points(med_equivalent_ci[i], i, pch = 16, cex = 1.5, col = couleur[i])
+    }
   }
-  names(col_desc) = c("Model not appropriate", "Bigger selected model","Model selected", "Model selected cv-wvic")
-
-  matrix_boot = matrix(NA,boot_ci, n_models_adj)
-
-  for (b in 1:boot_ci){
-    matrix_boot[b,] =  apply(mat_criteria_scaled[sample(1:n_permutation, replace = TRUE),],2,mean)
-  }
-
-  ci_low = rep(NA,n_models_adj)
-  ci_high = rep(NA,n_models_adj)
-  med_cv = rep(NA,n_models_adj)
-
-  for (i in 1:n_models_adj){
-    med_cv[i] = quantile(matrix_boot[,i], probs = 0.5)
-    ci_low[i] = quantile(matrix_boot[,i], probs = alpha/2)
-    ci_high[i] = quantile(matrix_boot[,i], probs = 1 - alpha/2)
-  }
-
-  ci_low_neg_index = which(ci_low <= 0)
-  ci_low_neg = ci_low[ci_low_neg_index]
-  ci_low_pos_index = which(ci_low > 0)
-  ci_low_pos =  ci_high[ci_low_pos_index]
-  left_bound = dmin(med_cv || ci_low_pos)
-
-
-  xlab = paste("CV-WVIC (Model) - CV-WVIC (", obj_list$model_name[selected_model_index],")", sep="")
-  ylab = " "
-  main = "CI for CV-WVIC"
-  par(oma = c(0.1,6.5,0,0))
-  plot(NA, xlim = c(min(med_cv), max(ci_high)), ylim = c(1,n_models_adj), ylab = ylab, xlab = NULL,
-       xaxt = 'n', yaxt = 'n', bty = "n", ann = FALSE, log = "x")
-  win_dim = par("usr")
-  par(new = TRUE)
-  plot(NA, xlim = c(min(med_cv) , max(ci_high)), ylim = c(win_dim[3], win_dim[4] + 0.09*(win_dim[4] - win_dim[3])),
-       ylab = ylab, xlab = " ", xaxt = 'n', yaxt = 'n', bty = "n", log = "x")
-  graphics::box()
-  mtext(xlab, side = 1, line = 2.5)
-  mtext(ylab, side = 2, line = 0)
-  win_dim = par("usr")
-
-  # Add grid
-  grid(NULL, NA, lty = 1, col = "grey95")
-  abline(h = 1:n_models_adj, lty = 1, col = "grey95")
-
-  # Add title
-  x_vec = 10^c(win_dim[1] , win_dim[2], win_dim[2], win_dim[1])
-  y_vec = c(win_dim[4], win_dim[4],
-            win_dim[4] - 0.09*(win_dim[4] - win_dim[3]),
-            win_dim[4] - 0.09*(win_dim[4] - win_dim[3]))
-  polygon(x_vec, y_vec, col = "grey95", border = NA)
-  text(x = 10^mean(c(win_dim[1], win_dim[2])), y = (win_dim[4] - 0.09/2*(win_dim[4] - win_dim[3])), main)
-
-  # Add axes and box
-  lines(x_vec[1:2], rep((win_dim[4] - 0.09*(win_dim[4] - win_dim[3])),2), col = "grey50")
-
-  axis(1, padj = 0.3)
-
-  y_axis = axis(2, labels = FALSE, tick = FALSE)
-  y_axis = 1:n_models_adj
-
-  for (i in 1:n_models_adj){
-    axis(2, padj = 0.5, at = i, las = 1, labels = model_names[i],
-         col.axis = col_desc[mod_des_ord[i]], cex.axis = 0.8)
-  }
-
-  for (i in ci_low_neg_index){
-    lines(c(10^(-30), ci_high[i]), c(i,i), col = couleur[i], lty = 2)
-    points(c(ci_low[i], ci_high[i]), c(i,i), pch = "|", col = couleur[i])
-    points(med_cv[i], i, pch = 16, cex = 1.5, col = couleur[i])
-  }
-
-  for (i in ci_low_pos_index){
-    lines(c(ci_low[i], ci_high[i]), c(i,i), col = couleur[i])
-    points(c(ci_low[i], ci_high[i]), c(i,i), pch = "|", col = couleur[i])
-    points(med_cv[i], i, pch = 16, cex = 1.5, col = couleur[i])
-  }
-
 }
 
 

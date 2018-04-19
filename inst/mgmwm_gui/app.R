@@ -21,10 +21,6 @@ data(adis16405)
 data(kvh1750.gyro)
 data(kvh1750.acc)
 
-library(simts)
-library(imudata)
-library(mgmwm2)
-
 
 n1 = 10000
 n2 = 50000

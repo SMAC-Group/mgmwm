@@ -6,7 +6,7 @@
 \usage{
 mgmwm(mimu, model = NULL, CI = FALSE, alpha_ci = NULL,
   n_boot_ci_max = NULL, stationarity_test = FALSE,
-  B_stationarity_test = 500, alpha_near_test = NULL, seed = 2710)
+  B_stationarity_test = 30, alpha_near_test = NULL, seed = 2710)
 }
 \arguments{
 \item{mimu}{A \code{mimu} object.}

@@ -23,6 +23,14 @@
 #' @param units A \code{string} value with unit of IMU.
 #' @param sensor.name A \code{string} with name of IMU.
 #' @param exp.name A \code{vector} with the experiment name
+#'
+#' @return A \code{mimu} object with the structure:
+#' \describe{
+#' \item{data}{original error signal for imu}
+#' \item{variance}{Data empirical Wavelet Variance}
+#' \item{ci_low}{Lower Confidence Interval for Wavelet Variance}
+#' \item{ci_high}{Upper Confidence Intervalfor Wavelet Variance}
+#' \item{scales}{Scales of the Wavelet Variance}}
 #' @author Gaetan Bakalli and Stephane Guerrier
 #' @importFrom wv wvar
 #' @export

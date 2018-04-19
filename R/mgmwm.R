@@ -113,7 +113,7 @@
 #'
 #' @export mgmwm
 mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max = NULL,
-                 stationarity_test = FALSE, B_stationarity_test= 500, alpha_near_test = NULL,
+                 stationarity_test = FALSE, B_stationarity_test= 30, alpha_near_test = NULL,
                  seed = 2710){
 
   # Not estimate the model if provide an "mgmwm" of "cvwvic" object.
@@ -310,7 +310,7 @@ mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max 
   # Perform the near-stationarity test
   if(stationarity_test == TRUE){
 
-    p_value = near_stationarity_test(mimu = mimu, model_hat = model_hat,
+    p_value = near_stationarity_test(mimu = mimu, model_hat = model_hat , model = model,
                                      seed = seed, B_stationarity_test = B_stationarity_test)
     # decision rule from the test
     if(p_value >= alpha_near_test){
@@ -419,10 +419,14 @@ plot.mgmwm = function(obj_list, decomp = FALSE,
 }
 
 
-near_stationarity_test = function(mimu = mimu, model_hat = model_hat,
+near_stationarity_test = function(mimu = mimu, model_ns = model_hat,model_hat = model_hat,
                                   seed = seed, B_stationarity_test = B_stationarity_test){
 
   n_replicates = length(mimu)
+
+  starting_value = model_ns$theta
+
+  model_ns$starting = TRUE
 
   distrib_H0 = rep(NA,B_stationarity_test)
 
@@ -434,11 +438,11 @@ near_stationarity_test = function(mimu = mimu, model_hat = model_hat,
     }
     simu.obj = make_mimu(for_test = sim.H0, freq = 100, unit = "s", sensor.name = "",
                                   exp.name = "")
-    distrib_H0[i] = optim(model_hat$theta, mgmwm_obj_function, model = model, mimu = simu.obj)$value
+    distrib_H0[i] = optim(starting_value, mgmwm_obj_function, model = model_ns, mimu = simu.obj)$value
   }
 
   # extract p_value from the test
-  p_value = sum(distrib_H0 >= model_hat$theta)/B_stationarity_test
+  p_value = sum(distrib_H0 <= model_hat$obj_value)/B_stationarity_test
 }
 
 #' @import iterpc
