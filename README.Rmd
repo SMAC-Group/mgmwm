@@ -31,11 +31,11 @@ To see what `mgmwm` is capable of, please refer to the "Vignettes" tabs above.
 
 ## IEEE/ION PLANS Monterey 2018 presentation
 
-[A Two-Step Computationally Efficient Procedure for IMU Classification and Calibration](pdf/A Two-Step Computationally Efficient Procedure for IMU Classification and Calibration.pdf "A Two-Step Computationally Efficient Procedure for IMU Classification and Calibration PDF")
+
+[A Two-Step Computationally Efficient Procedure for IMU Classification and Calibration](https://github.com/SMAC-Group/mgmwm/pdf/ieee-ion plans 2018 slides.pdf).
+
 
 ## Install Instructions
-
-To install the `mgmwm` package, there is currently one option: [GitHub](https://github.com/SMAC-Group/mgmwm/).
 
 ### Installing the package through GitHub
 

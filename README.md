@@ -12,14 +12,13 @@ To see what `mgmwm` is capable of, please refer to the "Vignettes" tabs above.
 
 ## IEEE/ION PLANS Monterey 2018 presentation
 
-[A Two-Step Computationally Efficient Procedure for IMU Classification and Calibration](pdf/A Two-Step Computationally Efficient Procedure for IMU Classification and Calibration.pdf "A Two-Step Computationally Efficient Procedure for IMU Classification and Calibration PDF")
+[A Two-Step Computationally Efficient Procedure for IMU Classification and Calibration](https://github.com/SMAC-Group/mgmwm/pdf/ieee-ion plans 2018 slides.pdf).
+
+
 
 
 Install Instructions
 --------------------
-
-To install the `mgmwm` package, there is currently one option: [GitHub](https://github.com/SMAC-Group/mgmwm/).
-
 ### Installing the package through GitHub
 
 For users who are interested in having the latest developments, this option is ideal. Though, more dependancies are required to run a stable version of the package. Most importantly, users **must** have a compiler installed on their machine that is compatible with R (e.g. Clang).
@@ -104,9 +103,7 @@ plot(mimu)
 
 ```
 <img src="man/figures/README-unnamed-chunk-5-1.png" alt="Wavelet Variance plot for multiple signals"  />
-<p class="caption">
-Wavelet Variance plot for multiple signals
-</p>
+
 
 
 **Estimates parameters values and plot function**
@@ -126,9 +123,7 @@ summary(fit_1)
 plot(fit_1)
 ```
 <img src="man/figures/README-unnamed-chunk-6-1.png" alt="Empirical Wavelet Variance with the one Implied by the parameters"  />
-<p class="caption">
-Empirical Wavelet Variance with the one Implied by the parameters
-</p>
+
 
 
 ```r
@@ -138,11 +133,9 @@ plot(fit_1, decomp = T)
 
 ```
 <img src="man/figures/README-unnamed-chunk-6-1.png" alt="Empirical Wavelet Variance with the one Implied by the parameters with the contribution of each individual processes"  />
-<p class="caption">
-Empirical Wavelet Variance with the one Implied by the parameters with the contribution of each individual processes
-</p> 
 
-** Select model and compare the selection criteria **
+
+**Select model and compare the selection criteria**
 
 ```r
 
@@ -151,16 +144,28 @@ model_selection_1 = model_selection(mimu, model)
 
 # Plot the selected model Implied WV
 plot(model_selection_1)
+```
+
+<img src="man/figures/README-unnamed-chunk-7-1.png" />
+
+
+```r
 
 # Plot the equivalent model WV
 plot(model_selection_1, type = "equivalent")
-
+```
+<img src="man/figures/README-unnamed-chunk-7-2.png" />
+```r
 # Plot the value of the WVIC for every nested model with their respective confidence intervals
 plot(model_selection_1, type = "wvic_all")
+```
+<img src="man/figures/README-unnamed-chunk-7-3.png" />
 
+The models in green are the equivalent models with the same or less models complexity, with respect to the number of parameters to estimate.
+```r
 # Plot the value of the WVIC for equivalent model(s) with their respective confidence intervals
 plot(model_selection_1, type = "wvic_equivalent")
 
 ```
+<img src="man/figures/README-unnamed-chunk-7-4.png" />
 
-The models in green are the equivalent models with the same or less models complexity, with respect to the number of parameters to estimate.
