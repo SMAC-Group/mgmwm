@@ -10,6 +10,11 @@ Multisignal GMWM (`mgmwm`) R package estimates parameters from multiple replicat
 
 To see what `mgmwm` is capable of, please refer to the "Vignettes" tabs above.
 
+## IEEE/ION PLANS Monterey 2018 presentation
+
+[A Two-Step Computationally Efficient Procedure for IMU Classification and Calibration](pdf/A Two-Step Computationally Efficient Procedure for IMU Classification and Calibration.pdf "A Two-Step Computationally Efficient Procedure for IMU Classification and Calibration PDF")
+
+
 Install Instructions
 --------------------
 
