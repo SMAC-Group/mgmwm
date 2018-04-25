@@ -150,7 +150,6 @@ plot(fit_1, decomp = T)
 
 
 ```{r, eval = T, warning = F, message = F, fig.width = 8, fig.height = 6}
-
 # Compute the Wavelet Variance Information Criterion (WVIC) on all nested models
 model_selection_1 = model_selection(mimu, model)
 
@@ -165,7 +164,6 @@ plot(model_selection_1, type = "wvic_all")
 
 # Plot the value of the WVIC for equivalent model(s) with their respective confidence intervals
 plot(model_selection_1, type = "wvic_equivalent")
-
 ```
 
 The models in green are the equivalent models with the same or less models complexity, with respect to the number of parameters to estimate.

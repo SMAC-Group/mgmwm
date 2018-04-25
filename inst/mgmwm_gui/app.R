@@ -85,10 +85,10 @@ names(test_data) = c("Gyro. X", "Gyro. Y","Gyro. Z", "Acc. X", "Acc. Y","Acc. Z"
 
 
 const.RENDER_PLOT_WIDTH = 1000
-const.RENDER_PLOT_HEIGHT = 600
+const.RENDER_PLOT_HEIGHT = 800
 const.RENDER_PLOT_RES = 100 # default is 72
 
-const.FIGURE_PLOT_HEIGHT = "600px"
+const.FIGURE_PLOT_HEIGHT = "750px"
 const.FIGURE_PLOT_HEIGHT_REDUCED = "400px"
 const.FIGURE_PLOT_HEIGHT_LOGO = "100px"
 
