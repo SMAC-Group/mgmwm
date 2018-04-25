@@ -12,8 +12,9 @@ To see what `mgmwm` is capable of, please refer to the "Vignettes" tabs above.
 
 ## IEEE/ION PLANS Monterey 2018 presentation
 
-[A Two-Step Computationally Efficient Procedure for IMU Classification and Calibration](https://github.com/SMAC-Group/mgmwm/pdf/ieee-ion plans 2018 slides.pdf).
+You'll find hereunder the presentation of the mgmwm package and its related theory:
 
+[A Two-Step Computationally Efficient Procedure for IMU Classification and Calibration](https://github.com/SMAC-Group/mgmwm/blob/master/pdf/ieee-ion%20plans%202018%20slides.pdf).
 
 
 
