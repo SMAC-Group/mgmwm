@@ -18,7 +18,7 @@ mimu = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s",
          sensor.name = "MTiG - Gyro. X", exp.name = c("today", "yesterday", "a few days ago"))
 
 start_time <- Sys.time()
-test_mgmwm1 = mgmwm(mimu, modelg, CI = F, stationarity_test = T, B_stationarity_test = 30,
+test_mgmwm1 = mgmwm(mimu, modelg, CI = F, stationarity_test = F, B_stationarity_test = 30,
                     alpha_ci = NULL, alpha_near_test = NULL, seed = 2710, n_boot_ci_max = 300)
 end_time <- Sys.time()
 

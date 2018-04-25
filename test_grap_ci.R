@@ -55,7 +55,7 @@ param_name = function(model){
 plot_CI = function(obj_list, units = NULL, xlab = NULL, ylab = NULL,
                      col_dens = NULL, col_ci = NULL, nb_ticks_x = NULL,
                      nb_ticks_y = NULL, ci_wv = NULL, point_cex = NULL,
-                     point_pch = NULL,col_line = NULL, ...){
+                     point_pch = NULL,col_line = NULL, main = NULL, ...){
 
   n_param = obj_list$model_hat$plength
 
@@ -67,7 +67,9 @@ plot_CI = function(obj_list, units = NULL, xlab = NULL, ylab = NULL,
 
   for (i in 1:n_param){
 
-    density_param = (density(na.omit(obj_list$distrib_param[,i])))
+
+    density_param_ns = (density(na.omit(obj_list$distrib_param[,i])))
+    density_param_s = (density(na.omit(boot_para_ci[,i])))
 
 
 
@@ -86,9 +88,9 @@ plot_CI = function(obj_list, units = NULL, xlab = NULL, ylab = NULL,
 
     param_name = param_name(obj_list$model_hat)
 
-
-    main = param_name[[i]]
-
+    if(is.null(main)){
+      main = param_name[[i]]
+    }
 
     # Line and CI colors
     if (is.null(col_dens)){
@@ -144,8 +146,11 @@ plot_CI = function(obj_list, units = NULL, xlab = NULL, ylab = NULL,
     box()
     axis(1, at = x_ticks, padj = 0.3)
     lines(density_param$x,density_param$y, type = "l", col = col_line)
-    polygon(c(obj_list$ci_low[[i]],density_param$x[density_param$x>=obj_list$ci_low[[i]] & density_param$x<=obj_list$ci_high[[i]]],obj_list$ci_high[[i]])
-            ,c(obj_list$ci_low[[i]],density_param$y[density_param$x>=obj_list$ci_low[[i]] & density_param$x<=obj_list$ci_high[[i]]],obj_list$ci_hig[[i]]),
+    polygon(c(obj_list$ci_low[[i]],density_param_ns$x[density_param$x>=obj_list$ci_low[[i]] & density_param_ns$x<=obj_list$ci_high[[i]]],obj_list$ci_high[[i]])
+            ,c(obj_list$ci_low[[i]],density_param_ns$y[density_param$x>=obj_list$ci_low[[i]] & density_param_ns$x<=obj_list$ci_high[[i]]],obj_list$ci_hig[[i]]),
+            col=col_dens, border = F)
+    polygon(c(obj_list$ci_low[[i]],density_param_s$x[density_param$x>=obj_list$ci_low[[i]] & density_param_s$x<=obj_list$ci_high[[i]]],obj_list$ci_high[[i]])
+            ,c(obj_list$ci_low[[i]],density_param_s$y[density_param$x>=obj_list$ci_low[[i]] & density_param_s$x<=obj_list$ci_high[[i]]],obj_list$ci_hig[[i]]),
             col=col_dens, border = F)
     lines(rep(obj_list$model_hat$theta[[i]],2), c(win_dim[3],
                                                   win_dim[4] - 0.09*(win_dim[4] - win_dim[3])), col = "red", lwd = 2)

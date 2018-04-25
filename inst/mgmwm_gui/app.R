@@ -199,7 +199,8 @@ ui <- shinyUI(fluidPage(
 
            checkboxInput("rm", "Equivalent models", FALSE),
            checkboxInput("eq", "Plot equivalent models", FALSE),
-           checkboxInput("compare", "Compare models", FALSE)
+           checkboxInput("compare", "Compare models", FALSE),
+           checkboxInput("zoom", "Compare equivalent models", FALSE)
 
 
     )
@@ -480,7 +481,8 @@ server <- function(input, output, session) {
       }
 
       a = model_selection(mimu = Xt, model = model, s_est = NULL,
-                          alpha_paired_test = NULL, seed = 2710)
+                          alpha_ci_cvwvic = NULL,b_ci_wvic = 500,  seed = 2710)
+
       v$form = a
       v$model_selection = TRUE
       updateNavbarPage(session, "tabs", selected = "Selected Sensor")
@@ -535,7 +537,9 @@ server <- function(input, output, session) {
       if (input$eq){
         plot(v$form, type = "equivalent")
       }else if (input$compare){
-        plot(v$form, type = "compare")
+        plot(v$form, type = "wvic_all")
+      }else if(input$zoom){
+        plot(v$form, type = "wvic_equivalent")
       }else{
         if (input$sel_mod != ""){
           plot(v$form, decomp = TRUE,  model = get_model())

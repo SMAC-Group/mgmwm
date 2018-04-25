@@ -210,7 +210,7 @@ model_selection = function(mimu, model, s_est = NULL, alpha_ci_cvwvic = NULL,
   selection_decision = rep(NA,n_models)
   selection_decision[mod_selected_cvwvic] = "Model selected"
   selection_decision_seq = which(is.na(selection_decision))
-  model_hat =  model_nested[[i]]
+  model_hat =  model_nested[[mod_selected_cvwvic]]
 
   # Put the decision rule in model object
   for (i in 1:n_models_adj){
@@ -422,7 +422,7 @@ model_WVIC_CI = function(obj_list, type = "wvic_all"){
   if(type == "wvic_all"){
 
 
-    col_desc = c("Black", "Black", couleur[3])
+    col_desc = c("Black", "Black", "#00BA38")
 
     names(col_desc) = c("Model not appropriate", "Bigger equivalent model", "Equivalent model")
 
@@ -431,7 +431,9 @@ model_WVIC_CI = function(obj_list, type = "wvic_all"){
     ci_low_neg = ci_low_wvic_ord[ci_low_neg_index]
     ci_low_pos_index = which(ci_low_wvic_ord > 0)
     ci_low_pos =  ci_high_wvic_ord[ci_low_pos_index]
-    left_bound = min(med_wvic_ord)
+    min_ci_low = min(ci_low_pos)
+    min_med = min(med_wvic_ord)
+    left_bound = min(c(ci_low_pos, min_med))
 
 
     xlab = paste("CV-WVIC (Model) - CV-WVIC (", obj_list$model_name[selected_model_index],")", sep="")

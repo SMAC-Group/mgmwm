@@ -2,6 +2,7 @@
 
 S3method(plot,mimu)
 export(comb.mat)
+export(desc_decomp_theo_fun)
 export(inv_logit)
 export(inv_param_transform)
 export(inv_transform_phi)

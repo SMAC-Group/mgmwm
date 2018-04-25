@@ -419,30 +419,28 @@ plot.mgmwm = function(obj_list, decomp = FALSE,
 }
 
 
-near_stationarity_test = function(mimu = mimu, model_ns = model_hat,model_hat = model_hat,
+near_stationarity_test = function(mimu = mimu, model_ns = model,model_hat = model_hat,
                                   seed = seed, B_stationarity_test = B_stationarity_test){
 
   n_replicates = length(mimu)
 
-  starting_value = model_ns$theta
-
-  model_ns$starting = TRUE
+  starting_value = inv_param_transform(model_ns,model_hat$theta)
 
   distrib_H0 = rep(NA,B_stationarity_test)
 
   for (i in 1:B_stationarity_test){
-    set.seed(i+seed)
     sim.H0 = list()
     for (j in 1:n_replicates){
+      set.seed(i*j+seed+1000)
       sim.H0[[j]] = simts::gen_gts(mimu[[j]]$N, model_hat)
     }
-    simu.obj = make_mimu(for_test = sim.H0, freq = 100, unit = "s", sensor.name = "",
+    simu.obj = make_mimu(for_test = sim.H0, freq = attr(mimu,"freq"), unit = "s", sensor.name = "",
                                   exp.name = "")
     distrib_H0[i] = optim(starting_value, mgmwm_obj_function, model = model_ns, mimu = simu.obj)$value
   }
 
   # extract p_value from the test
-  p_value = sum(distrib_H0 <= model_hat$obj_value)/B_stationarity_test
+  p_value = sum(distrib_H0 >= model_hat$obj_value)/B_stationarity_test
 }
 
 #' @import iterpc
@@ -496,6 +494,7 @@ ci_mgmwm = function(model_ci = model_ci, mimu = mimu,
   distrib_param
 }
 
+#' @export
 desc_decomp_theo_fun = function(model_hat, n_process){
 
   out_desc = list()

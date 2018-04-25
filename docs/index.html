@@ -70,12 +70,12 @@
     
     
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-<p><a href="https://travis-ci.org/SMAC-Group/classimu"><img src="https://travis-ci.org/SMAC-Group/classimu.svg?branch=master" alt="Travis-CI Build Status"></a> <a href="http://www.repostatus.org/#active"><img src="http://www.repostatus.org/badges/latest/active.svg" alt="Project Status: Active"></a> <a href="https://www.gnu.org/licenses/gpl-3.0.en.html"><img src="https://img.shields.io/badge/licence-CC%20BY--NC--SA%204.0-blue.svg" alt="Licence"></a> <a href="https://cran.r-project.org/"><img src="https://img.shields.io/badge/R%3E%3D-3.4.0-6666ff.svg" alt="minimal R version"></a> <a href="https://cran.r-project.org/package=classimu"><img src="http://www.r-pkg.org/badges/version/classimu" alt="CRAN"></a> <a href="commits/develop"><img src="https://img.shields.io/badge/Package%20version-0.1.0-orange.svg?style=flat-square" alt="packageversion"></a> <a href="/commits/master"><img src="https://img.shields.io/badge/last%20change-2018--04--13-yellowgreen.svg" alt="Last-changedate"></a></p>
+<p><a href="https://travis-ci.org/SMAC-Group/classimu"><img src="https://travis-ci.org/SMAC-Group/classimu.svg?branch=master" alt="Travis-CI Build Status"></a> <a href="http://www.repostatus.org/#active"><img src="http://www.repostatus.org/badges/latest/active.svg" alt="Project Status: Active"></a> <a href="https://www.gnu.org/licenses/gpl-3.0.en.html"><img src="https://img.shields.io/badge/licence-CC%20BY--NC--SA%204.0-blue.svg" alt="Licence"></a> <a href="https://cran.r-project.org/"><img src="https://img.shields.io/badge/R%3E%3D-3.4.0-6666ff.svg" alt="minimal R version"></a> <a href="https://cran.r-project.org/package=classimu"><img src="http://www.r-pkg.org/badges/version/classimu" alt="CRAN"></a> <a href="commits/develop"><img src="https://img.shields.io/badge/Package%20version-0.1.0-orange.svg?style=flat-square" alt="packageversion"></a> <a href="/commits/master"><img src="https://img.shields.io/badge/last%20change-2018--04--25-yellowgreen.svg" alt="Last-changedate"></a></p>
 <div id="mgmwm-overview" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#mgmwm-overview" class="anchor"></a><code>mgmwm</code> Overview <a href="https://smac-group.com/"><img src="reference/figures/logo.png" align="right" style="width: 20%; height: 20%"></a>
 </h1></div>
-<p>Multivariate GMWM (<code>mgmwm</code>) R package estimates parameters from multiple replicates coming from an IMU error signal, apply the near-stationarity test and select the nost approriate model</p>
+<p>Multisignal GMWM (<code>mgmwm</code>) R package estimates parameters from multiple replicates coming from an IMU error signal, apply the near-stationarity test and select the nost approriate model</p>
 <p>To see what <code>mgmwm</code> is capable of, please refer to the “Vignettes” tabs above.</p>
 <div id="install-instructions" class="section level2">
 <h2 class="hasAnchor">
@@ -101,13 +101,110 @@
 <p><strong>All Systems</strong></p>
 <p>The following R packages are also required. If you have made it this far, run the following code in an R session and you will be ready to use the devlopment version of <code>mgmwm</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Install dependencies</span>
-<span class="kw">install.packages</span>(<span class="kw">c</span>(<span class="st">"RcppArmadillo"</span>,<span class="st">"devtools"</span>,<span class="st">"knitr"</span>,<span class="st">"rmarkdown"</span>))
+<span class="kw">install.packages</span>(<span class="kw">c</span>(<span class="st">"RcppArmadillo"</span>,<span class="st">"devtools"</span>,<span class="st">"knitr"</span>,<span class="st">"rmarkdown"</span>, <span class="st">"iterpc"</span>, <span class="st">"progress"</span>))
+
+<span class="co"># Install dependencies from github</span>
+devtools<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/devtools/topics/install_github">install_github</a></span>(<span class="kw">c</span>(<span class="st">"SMAC-Group/simts"</span>, <span class="st">"SMAC-Group/wv"</span>, <span class="st">"SMAC-Group/gmwm"</span>))
 
 <span class="co"># Install the package from GitHub without Vignettes/User Guides</span>
 devtools<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/devtools/topics/install_github">install_github</a></span>(<span class="st">"SMAC-Group/mgmwm"</span>)
 
 <span class="co"># Install the package with Vignettes/User Guides </span>
 devtools<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/devtools/topics/install_github">install_github</a></span>(<span class="st">"SMAC-Group/mgmwm"</span>, <span class="dt">build_vignettes =</span> <span class="ot">TRUE</span>)</code></pre></div>
+</div>
+<div id="package-capabilities-example" class="section level3">
+<h3 class="hasAnchor">
+<a href="#package-capabilities-example" class="anchor"></a>Package capabilities example</h3>
+<p><strong>Create a M-IMU object</strong></p>
+<p>In order to use the <code>mgmwm</code> package, one need to create a mimu object through the function <code>make_mimu</code>. An example on how to use this function is provided hereunder with simulated data:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(simts)
+<span class="kw">library</span>(wv)
+<span class="kw">library</span>(gmwm)
+<span class="kw">library</span>(mgmwm)
+
+<span class="co"># Define the differente sample size for simulated data</span>
+n1 =<span class="st"> </span><span class="dv">10000</span>
+n2 =<span class="st"> </span><span class="dv">500000</span>
+n3 =<span class="st"> </span><span class="dv">100000</span>
+n4 =<span class="st"> </span><span class="dv">50000</span>
+
+<span class="co"># Define the model for simulated data</span>
+model1 =<span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/simts/topics/AR1">AR1</a></span>(.<span class="dv">995</span>, <span class="dt">sigma2 =</span> <span class="fl">1e-6</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/simts/topics/WN">WN</a></span>(.<span class="dv">005</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/simts/topics/RW">RW</a></span> (<span class="fl">1e-7</span>)
+model2 =<span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/simts/topics/AR1">AR1</a></span>(.<span class="dv">990</span>, <span class="dt">sigma2 =</span> <span class="fl">1e-6</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/simts/topics/WN">WN</a></span>(.<span class="dv">007</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/simts/topics/RW">RW</a></span> (<span class="fl">1e-7</span>)
+
+<span class="co"># Generate 4 replicates coming from the above models</span>
+Wt =<span class="st">  </span><span class="kw"><a href="http://www.rdocumentation.org/packages/simts/topics/gen_gts">gen_gts</a></span>(n1, model1)
+Xt =<span class="st">  </span><span class="kw"><a href="http://www.rdocumentation.org/packages/simts/topics/gen_gts">gen_gts</a></span>(n2, model1)
+Yt =<span class="st">  </span><span class="kw"><a href="http://www.rdocumentation.org/packages/simts/topics/gen_gts">gen_gts</a></span>(n3, model2)
+Zt =<span class="st">  </span><span class="kw"><a href="http://www.rdocumentation.org/packages/simts/topics/gen_gts">gen_gts</a></span>(n4, model2)
+
+<span class="co"># Create the mimu object</span>
+mimu =<span class="st"> </span><span class="kw"><a href="reference/make_mimu.html">make_mimu</a></span>(Wt ,Xt, Yt, Zt, <span class="dt">freq =</span> <span class="dv">100</span>, <span class="dt">unit =</span> <span class="st">"s"</span>, <span class="dt">sensor.name =</span> <span class="st">"Simulated Data sets"</span>, 
+                 <span class="dt">exp.name =</span> <span class="kw">c</span>(<span class="st">"today"</span>, <span class="st">"yesterday"</span>, <span class="st">"last friday"</span>,<span class="st">"last tuesday"</span> ))
+
+<span class="co"># Plot the data at hand</span>
+<span class="kw">plot</span>(mimu)</code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-5-1.png" width="768"></p>
+<p><strong>Estimates parameters values and plot function</strong></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">
+<span class="co"># Specify the model which you want to estimate</span>
+model =<span class="st"> </span><span class="dv">3</span><span class="op">*</span><span class="kw"><a href="http://www.rdocumentation.org/packages/simts/topics/AR1">AR1</a></span>() <span class="op">+</span><span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/simts/topics/WN">WN</a></span>() <span class="op">+</span><span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/simts/topics/RW">RW</a></span> ()
+
+<span class="co"># Estimate the model with the mgmwm function</span>
+fit_<span class="dv">1</span> =<span class="st"> </span><span class="kw"><a href="reference/mgmwm.html">mgmwm</a></span>(mimu, model, <span class="dt">CI =</span> T)
+
+<span class="co"># Print summary of estimation (Parameters values and respective confidence intervals if computed)</span>
+<span class="kw">summary</span>(fit_<span class="dv">1</span>)
+<span class="co">#&gt; $estimates</span>
+<span class="co">#&gt;           Estimates       CI Low      CI High</span>
+<span class="co">#&gt; AR1    9.992563e-01 9.981725e-01 9.999349e-01</span>
+<span class="co">#&gt; SIGMA2 4.572730e-09 1.801417e-09 2.776215e-08</span>
+<span class="co">#&gt; AR1    9.933242e-01 9.873649e-01 9.958664e-01</span>
+<span class="co">#&gt; SIGMA2 9.046298e-07 1.271017e-07 1.001078e-06</span>
+<span class="co">#&gt; AR1    9.949677e-01 9.863666e-01 9.961555e-01</span>
+<span class="co">#&gt; SIGMA2 2.391295e-07 8.202180e-08 8.840020e-07</span>
+<span class="co">#&gt; WN     5.260222e-03 4.983116e-03 7.057402e-03</span>
+<span class="co">#&gt; RW     1.077516e-07 5.335992e-08 1.122293e-07</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $obj_value</span>
+<span class="co">#&gt; Value Objective Function </span>
+<span class="co">#&gt;                 357.3036 </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $near_stationarity_test</span>
+<span class="co">#&gt; [1] "Near-stationarity test not computed. Set `stationarity_test = TRUE`"</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $p_value_nr_test</span>
+<span class="co">#&gt; [1] NA</span>
+
+<span class="co"># Plot the Empirical Wavelet Variance with the one Implied by the parameters</span>
+<span class="kw">plot</span>(fit_<span class="dv">1</span>)</code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-6-1.png" width="768"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">
+<span class="co"># Plot the Empirical Wavelet Variance with the one Implied by the parameters with the contribution </span>
+<span class="co"># of each individual processes</span>
+<span class="kw">plot</span>(fit_<span class="dv">1</span>, <span class="dt">decomp =</span> T)</code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-6-2.png" width="768"></p>
+<p>** Select model and compare the selection criteria **</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">
+<span class="co"># Compute the Wavelet Variance Information Criterion (WVIC) on all nested models</span>
+model_selection_<span class="dv">1</span> =<span class="st"> </span><span class="kw"><a href="reference/model_selection.html">model_selection</a></span>(mimu, model)
+
+<span class="co"># Plot the selected model Implied WV</span>
+<span class="kw">plot</span>(model_selection_<span class="dv">1</span>)</code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-7-1.png" width="768"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">
+<span class="co"># Plot the equivalent model WV</span>
+<span class="kw">plot</span>(model_selection_<span class="dv">1</span>, <span class="dt">type =</span> <span class="st">"equivalent"</span>)</code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-7-2.png" width="768"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">
+<span class="co"># Plot the value of the WVIC for every nested model with their respective confidence intervals</span>
+<span class="kw">plot</span>(model_selection_<span class="dv">1</span>, <span class="dt">type =</span> <span class="st">"wvic_all"</span>)</code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-7-3.png" width="768"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">
+<span class="co"># Plot the value of the WVIC for equivalent model(s) with their respective confidence intervals</span>
+<span class="kw">plot</span>(model_selection_<span class="dv">1</span>, <span class="dt">type =</span> <span class="st">"wvic_equivalent"</span>)</code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-7-4.png" width="768"></p>
+<p>The models in green are the equivalent models with the same or less models complexity, with respect to the number of parameters to estimate.</p>
 </div>
 </div>
 </div>
