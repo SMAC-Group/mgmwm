@@ -95,6 +95,9 @@ library(wv)
 library(gmwm)
 library(mgmwm)
 
+# Set seed for reproducibility 
+set.seed(2710)
+
 # Define the differente sample size for simulated data
 n1 = 10000
 n2 = 500000

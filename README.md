@@ -18,7 +18,7 @@ To see what `mgmwm` is capable of, please refer to the "Vignettes" tabs above.
 Install Instructions
 --------------------
 
-To install the `mgmwm` package, there is currently one option: [GitHub](https://github.com/SMAC-Group/classimu/).
+To install the `mgmwm` package, there is currently one option: [GitHub](https://github.com/SMAC-Group/mgmwm/).
 
 ### Installing the package through GitHub
 
@@ -71,11 +71,13 @@ devtools::install_github("SMAC-Group/mgmwm", build_vignettes = TRUE)
 
 In order to use the `mgmwm` package, one need to create a mimu object through the function `make_mimu`. An example on how to use this function is provided hereunder with simulated data:
 
-```{r, eval = T, warning = F, message = F, fig.width = 8, fig.height = 6}
-library(simts)
+```r
 library(wv)
 library(gmwm)
 library(mgmwm)
+
+# Set seed for reproducibility 
+set.seed(2710)
 
 # Define the differente sample size for simulated data
 n1 = 10000
@@ -101,9 +103,15 @@ mimu = make_mimu(Wt ,Xt, Yt, Zt, freq = 100, unit = "s", sensor.name = "Simulate
 plot(mimu)
 
 ```
+<img src="man/figures/README-unnamed-chunk-5-1.png" alt="Wavelet Variance plot for multiple signals"  />
+<p class="caption">
+Wavelet Variance plot for multiple signals
+</p>
+
+
 **Estimates parameters values and plot function**
 
-```{r, eval = T, warning = F, message = F, fig.width = 8, fig.height = 8}
+```r
 
 # Specify the model which you want to estimate
 model = 3*AR1() + WN() + RW ()
@@ -116,16 +124,27 @@ summary(fit_1)
 
 # Plot the Empirical Wavelet Variance with the one Implied by the parameters
 plot(fit_1)
+```
+<img src="man/figures/README-unnamed-chunk-6-1.png" alt="Empirical Wavelet Variance with the one Implied by the parameters"  />
+<p class="caption">
+Empirical Wavelet Variance with the one Implied by the parameters
+</p>
 
+
+```r
 # Plot the Empirical Wavelet Variance with the one Implied by the parameters with the contribution 
 # of each individual processes
 plot(fit_1, decomp = T)
 
 ```
+<img src="man/figures/README-unnamed-chunk-6-1.png" alt="Empirical Wavelet Variance with the one Implied by the parameters with the contribution of each individual processes"  />
+<p class="caption">
+Empirical Wavelet Variance with the one Implied by the parameters with the contribution of each individual processes
+</p> 
 
 ** Select model and compare the selection criteria **
 
-```{r, eval = T, warning = F, message = F, fig.width = 8, fig.height = 8}
+```r
 
 # Compute the Wavelet Variance Information Criterion (WVIC) on all nested models
 model_selection_1 = model_selection(mimu, model)

@@ -127,6 +127,9 @@ devtools<span class="op">::</span><span class="kw"><a href="http://www.rdocument
 <span class="kw">library</span>(gmwm)
 <span class="kw">library</span>(mgmwm)
 
+<span class="co"># Set seed for reproducibility </span>
+<span class="kw">set.seed</span>(<span class="dv">2710</span>)
+
 <span class="co"># Define the differente sample size for simulated data</span>
 n1 =<span class="st"> </span><span class="dv">10000</span>
 n2 =<span class="st"> </span><span class="dv">500000</span>
@@ -162,18 +165,18 @@ fit_<span class="dv">1</span> =<span class="st"> </span><span class="kw"><a href
 <span class="kw">summary</span>(fit_<span class="dv">1</span>)
 <span class="co">#&gt; $estimates</span>
 <span class="co">#&gt;           Estimates       CI Low      CI High</span>
-<span class="co">#&gt; AR1    9.942020e-01 9.900082e-01 9.995468e-01</span>
-<span class="co">#&gt; SIGMA2 2.234758e-08 1.679194e-09 5.619652e-07</span>
-<span class="co">#&gt; AR1    9.999983e-01 9.999980e-01 1.000000e+00</span>
-<span class="co">#&gt; SIGMA2 3.415060e-12 7.727269e-14 2.591727e-11</span>
-<span class="co">#&gt; AR1    9.943813e-01 9.821408e-01 9.960920e-01</span>
-<span class="co">#&gt; SIGMA2 9.979730e-07 3.539110e-07 1.035086e-06</span>
-<span class="co">#&gt; WN     5.251248e-03 4.965862e-03 7.073993e-03</span>
-<span class="co">#&gt; RW     8.966060e-08 3.980512e-08 1.049751e-07</span>
+<span class="co">#&gt; AR1    9.950366e-01 9.854542e-01 9.992173e-01</span>
+<span class="co">#&gt; SIGMA2 6.289603e-07 8.236648e-08 9.116355e-07</span>
+<span class="co">#&gt; AR1    9.997900e-01 9.997213e-01 9.999828e-01</span>
+<span class="co">#&gt; SIGMA2 3.072764e-08 4.116382e-09 1.049841e-07</span>
+<span class="co">#&gt; AR1    9.805797e-01 9.222580e-01 9.890081e-01</span>
+<span class="co">#&gt; SIGMA2 1.137843e-06 1.002391e-06 4.645554e-06</span>
+<span class="co">#&gt; WN     5.251933e-03 4.987571e-03 7.064955e-03</span>
+<span class="co">#&gt; RW     6.096029e-08 6.033864e-09 7.361589e-08</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $obj_value</span>
 <span class="co">#&gt; Value Objective Function </span>
-<span class="co">#&gt;                 361.8708 </span>
+<span class="co">#&gt;                 360.7675 </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $near_stationarity_test</span>
 <span class="co">#&gt; [1] "Near-stationarity test not computed. Set `stationarity_test = TRUE`"</span>
