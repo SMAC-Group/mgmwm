@@ -14,7 +14,7 @@ To see what `mgmwm` is capable of, please refer to the "Vignettes" tabs above.
 
 You'll find hereunder the presentation of the mgmwm package and its related theory:
 
-[A Two-Step Computationally Efficient Procedure for IMU Classification and Calibration](https://github.com/SMAC-Group/mgmwm/blob/master/pdf/ieee-ion%20plans%202018%20slides.pdf).
+[A Two-Step Computationally Efficient Procedure for IMU Classification and Calibration](https://smac-group.com/pdfs/ieee_ion_plans_2018_slides.pdf).
 
 
 
