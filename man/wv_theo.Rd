@@ -2,7 +2,6 @@
 % Please edit documentation in R/mimu.R, R/utils.R
 \name{wv_theo}
 \alias{wv_theo}
-\alias{wv_theo}
 \title{Compute theroretical Wavelet Variance}
 \usage{
 \method{plot}{mimu}(model, tau)

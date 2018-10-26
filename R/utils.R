@@ -148,7 +148,7 @@ model_combination = function(model){
   m = as.matrix(comb.mat(n_process_max))
   m = m[-nrow(m),]
 
-  models_names = build_model_set(m,model_desc_max)
+  models_names =build_model_set(m,model_desc_max)
 
   n_models =length(models_names)
 
@@ -365,31 +365,31 @@ wv_theo = function(model, tau){
   for (i in 1:M){
     # is random walk?
     if (desc[i] == "RW"){
-      wv[i, ] = gmwm::rw_to_wv(gamma2 = theta[counter], tau = tau)
+      wv[i, ] = wv::rw_to_wv(gamma2 = theta[counter], tau = tau)
       counter = counter + 1
     }
 
     # is white noise?
     if (desc[i] == "WN"){
-      wv[i, ] = gmwm::wn_to_wv(sigma2 = theta[counter], tau = tau)
+      wv[i, ] = wv::wn_to_wv(sigma2 = theta[counter], tau = tau)
       counter = counter + 1
     }
 
     # is drift?
     if (desc[i] == "DR"){
-      wv[i, ] = gmwm::dr_to_wv(omega = theta[counter], tau = tau)
+      wv[i, ] = wv::dr_to_wv(omega = theta[counter], tau = tau)
       counter = counter + 1
     }
 
     # is quantization noise?
     if (desc[i] == "QN"){
-      wv[i, ] = gmwm::qn_to_wv(q2 = theta[counter], tau = tau)
+      wv[i, ] = wv::qn_to_wv(q2 = theta[counter], tau = tau)
       counter = counter + 1
     }
 
     # is AR1?
     if (desc[i] == "AR1"){
-      wv[i, ] = gmwm::ar1_to_wv(phi = theta[counter], sigma2 = theta[counter + 1], tau = tau)
+      wv[i, ] = wv::ar1_to_wv(phi = theta[counter], sigma2 = theta[counter + 1], tau = tau)
       counter = counter + 2
     }
   }

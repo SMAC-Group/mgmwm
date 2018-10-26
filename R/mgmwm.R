@@ -249,10 +249,7 @@ mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max 
       }
 
       # Compute the parameter value from gmwm
-      uni_gmwm = .Call('gmwm_gmwm_master_cpp', PACKAGE = 'gmwm', data, theta, desc, obj = obj_desc,
-                       model.type = 'imu' , starting = model$starting,
-                       p = 0.05, compute_v = "fast", K = 1, H = 100, G = G,
-                       robust=FALSE, eff = 1)[[1]]
+      uni_gmwm = gmwm::gmwm(model, data, model.type = 'imu')[[1]]
 
       # Store the univariate gmwm
       param_starting[i,] = uni_gmwm

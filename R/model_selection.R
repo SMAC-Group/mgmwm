@@ -105,10 +105,7 @@ model_selection = function(mimu, model, s_est = NULL, alpha_ci_cvwvic = NULL,
         G = 20000
       }
 
-      uni_gmwm = .Call('gmwm_gmwm_master_cpp', PACKAGE = 'gmwm', data, theta, desc, obj = obj_desc,
-                       model.type = 'imu' , starting = model_nested[[i]]$starting,
-                       p = 0.05, compute_v = "fast", K = 1, H = 100, G = G,
-                       robust=FALSE, eff = 1)[[1]]
+      uni_gmwm =  gmwm::gmwm(model_nested[[i]], data, model.type = 'imu')[[1]]
 
       # Store the univariate gmwm
       param_starting[k,] = uni_gmwm
