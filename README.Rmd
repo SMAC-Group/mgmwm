@@ -24,14 +24,13 @@ library(mgmwm)
 
 # `mgmwm` Overview <a href="https://smac-group.com/"><img src="man/figures/logo.png" align="right" style="width: 20%; height: 20%"/></a>
 
-Multisignal GMWM (`mgmwm`) R package estimates parameters from multiple replicates coming from an IMU error signal, apply the near-stationarity test and select the nost approriate model 
-
+Multisignal GMWM (`mgmwm`) R package allows to estimate the parameters from multiple replicates coming from an IMU error signal, apply the near-stationarity test and select the nost approriate model.
 
 To see what `mgmwm` is capable of, please refer to the "Vignettes" tabs above.
 
 ## IEEE/ION PLANS Monterey 2018 presentation
 
-You'll find hereunder the presentation of the mgmwm package and its related theory:
+You'll find hereunder the presentation of the `mgmwm` package and its related theory:
 
 [A Two-Step Computationally Efficient Procedure for IMU Classification and Calibration](https://smac-group.com/pdfs/ieee_ion_plans_2018_slides.pdf).
 
