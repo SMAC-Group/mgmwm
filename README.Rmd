@@ -72,7 +72,7 @@ The following R packages are also required. If you have made it this far, run th
 
 ```{r, eval = F}
 # Install dependencies
-install.packages(c("RcppArmadillo","devtools","knitr","rmarkdown", "iterpc", "progress"))
+install.packages(c("RcppArmadillo","devtools","knitr","rmarkdown", "iterpc", "progress", "shinyjs"))
 
 # Install dependencies from github
 devtools::install_github(c("SMAC-Group/simts", "SMAC-Group/wv", "SMAC-Group/gmwm"))
