@@ -249,7 +249,7 @@ mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max 
       }
 
       # Compute the parameter value from gmwm
-      uni_gmwm = gmwm::gmwm(model, data, model.type = 'imu')[[1]]
+      uni_gmwm = simts::gmwm(model, data, model.type = 'imu')[[1]]
 
       # Store the univariate gmwm
       param_starting[i,] = uni_gmwm
