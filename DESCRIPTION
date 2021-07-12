@@ -25,7 +25,7 @@ Imports:
     shinyjs,
     progress,
     iterpc
-RoxygenNote: 6.1.0
+RoxygenNote: 7.1.1
 Suggests: 
     knitr,
     rmarkdown

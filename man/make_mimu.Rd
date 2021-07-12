@@ -4,8 +4,14 @@
 \alias{make_mimu}
 \title{Creates a Multivariate IMU object.}
 \usage{
-make_mimu(..., freq, unit = NULL, sensor.name = NULL,
-  exp.name = NULL, for_test = NULL)
+make_mimu(
+  ...,
+  freq,
+  unit = NULL,
+  sensor.name = NULL,
+  exp.name = NULL,
+  for_test = NULL
+)
 }
 \arguments{
 \item{...}{A \code{list} of \code{vector} reprenting multiple error signals from IMU}

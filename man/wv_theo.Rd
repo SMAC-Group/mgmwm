@@ -12,10 +12,6 @@ wv_theo(model, tau)
 \item{model}{A \code{model} object.}
 
 \item{tau}{A \code{vector} of \eqn{2^1:number of scales}}
-
-\item{model}{A \code{model} object.}
-
-\item{tau}{A \code{vector} of \eqn{2^1:number of scales}}
 }
 \value{
 \code{vector} of theoretical Wavelet Variance for a given model
@@ -35,7 +31,7 @@ obj = make_mimu(Xt, Yt, Zt, freq = 100, unit = "s",
 sensor.name = "MTiG - Gyro. X", exp.name = c("today", "yesterday", "a few days ago"))
 model = AR1() + WN()
 
-Extract the scales of first replicates of mimu \\code{object} and compute tau
+Extract the scales of first replicates of mimu \code{object} and compute tau
 tau = mimu[[1]]$tau
 wv_theo = function(model, tau)
 #' Xt = rnorm(n/4)
@@ -45,7 +41,7 @@ obj = make_wvar_mimu_obj(Xt, Yt, Zt, freq = 100, unit = "s",
 sensor.name = "MTiG - Gyro. X", exp.name = c("today", "yesterday", "a few days ago"))
 model = AR1() + WN()
 
-Extract the scales of first replicates of mimu \\code{object} and compute tau
+Extract the scales of first replicates of mimu \code{object} and compute tau
 tau = 2^(1:length(sensor.name[[1]]$scales))
 wv_theo = function(model, tau)
 }

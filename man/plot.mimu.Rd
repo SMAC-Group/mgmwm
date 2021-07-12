@@ -4,12 +4,24 @@
 \alias{plot.mimu}
 \title{Plot Wavelet Variances}
 \usage{
-\method{plot}{mimu}(obj_list, split_plot = FALSE, add_legend = TRUE,
-  xlab = NULL, ylab = NULL, col_wv = NULL, col_ci = NULL,
-  nb_ticks_x = NULL, nb_ticks_y = NULL,
-  legend_position = "bottomleft", ci_wv = NULL, point_cex = NULL,
-  point_pch = NULL, names = NULL, transparency_wv = NULL,
-  transparency_ci = NULL)
+\method{plot}{mimu}(
+  obj_list,
+  split_plot = FALSE,
+  add_legend = TRUE,
+  xlab = NULL,
+  ylab = NULL,
+  col_wv = NULL,
+  col_ci = NULL,
+  nb_ticks_x = NULL,
+  nb_ticks_y = NULL,
+  legend_position = "bottomleft",
+  ci_wv = NULL,
+  point_cex = NULL,
+  point_pch = NULL,
+  names = NULL,
+  transparency_wv = NULL,
+  transparency_ci = NULL
+)
 }
 \arguments{
 \item{add_legend}{A \code{bolean} that detemines if a legend is added to the plot.}

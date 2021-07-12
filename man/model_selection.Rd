@@ -4,8 +4,14 @@
 \alias{model_selection}
 \title{Multivariate Generalized Method of Wavelet Moments (MGMWM) for IMUs}
 \usage{
-model_selection(mimu, model, s_est = NULL, alpha_ci_cvwvic = NULL,
-  b_ci_wvic = 500, seed = 2710)
+model_selection(
+  mimu,
+  model,
+  s_est = NULL,
+  alpha_ci_cvwvic = NULL,
+  b_ci_wvic = 500,
+  seed = 2710
+)
 }
 \description{
 Multivariate Generalized Method of Wavelet Moments (MGMWM) for IMUs

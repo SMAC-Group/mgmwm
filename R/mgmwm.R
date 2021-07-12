@@ -367,54 +367,6 @@ mgmwm = function(mimu, model = NULL, CI = FALSE, alpha_ci = NULL, n_boot_ci_max 
 }
 
 
-#' @export plot.mgmwm
-plot.mgmwm = function(obj_list, decomp = FALSE,
-                      add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = NULL){
-
-  # mimu_obj_name = attr(obj_list[[7]], "exp.name")
-  # mimu_obj_name = paste("Empirical WV", mimu_obj_name)
-
-  if (is.null(ylab_mgmwm)){
-    ylab = expression(paste("Wavelet Variance ", nu^2, sep = ""))
-  }else{
-    ylab = ylab_mgmwm
-  }
-
-
-  plot(obj_list$mimu, add_legend = FALSE,ylab = ylab)
-  U = length(obj_list$model_hat$decomp_theo)
-  col_wv = hcl(h = seq(100, 375, length = U + 1), l = 65, c = 200, alpha = 1)[1:U]
-
-  if(decomp == TRUE){
-    # Number of Latent proces
-
-    # Plot lines of decomp theo
-    for (i in 1:U){
-      lines(t(obj_list$scales_max_vec), obj_list$model_hat$decomp_theo[[i]], col = col_wv[i])
-    }
-  }
-  # Plot implied WV
-  lines(t(obj_list$scales_max_vec),obj_list$model_hat$wv_implied, type = "l", lwd = 3, col = "#F47F24", pch = 1, cex = 1.5)
-  lines(t(obj_list$scales_max_vec),obj_list$model_hat$wv_implied, type = "p", lwd = 2, col = "#F47F24", pch = 1, cex = 1.5)
-
-  if(decomp == TRUE){
-    legend_names = c("Implied WV", obj_list$model_hat$desc)
-    col_legend = c("#F47F24",col_wv)
-    p_cex_legend = c(1.5,rep(NA,U))
-  }else{
-    legend_names = c("Implied WV")
-    col_legend = c("#F47F24")
-    p_cex_legend = c(1.5)
-  }
-
-  if (is.null(legend_pos)){
-    legend_pos = "bottomleft"
-  }
-  if (add_legend_mgwmw == TRUE){
-    legend(legend_pos, legend_names, bty = "n", lwd = 1, pt.cex = 1.5, pch = p_cex_legend, col = col_legend)
-  }
-}
-
 
 near_stationarity_test = function(mimu = mimu, model_ns = model,model_hat = model_hat,
                                   seed = seed, B_stationarity_test = B_stationarity_test){
@@ -533,8 +485,67 @@ desc_decomp_theo_fun = function(model_hat, n_process){
   out_desc
 }
 
-#'@export summary.mgmwm
-summary.mgmwm = function(object){
+
+
+
+
+
+#' @title plot method for mgmwm
+#' @method  plot mgmwm
+#' @export
+plot.mgmwm = function(object, decomp = FALSE,
+                      add_legend_mgwmw = TRUE, legend_pos = NULL, ylab_mgmwm = NULL){
+
+  # mimu_obj_name = attr(object[[7]], "exp.name")
+  # mimu_obj_name = paste("Empirical WV", mimu_obj_name)
+
+  if (is.null(ylab_mgmwm)){
+    ylab = expression(paste("Wavelet Variance ", nu^2, sep = ""))
+  }else{
+    ylab = ylab_mgmwm
+  }
+
+
+  plot(object$mimu, add_legend = FALSE,ylab = ylab)
+  U = length(object$model_hat$decomp_theo)
+  col_wv = hcl(h = seq(100, 375, length = U + 1), l = 65, c = 200, alpha = 1)[1:U]
+
+  if(decomp == TRUE){
+    # Number of Latent proces
+
+    # Plot lines of decomp theo
+    for (i in 1:U){
+      lines(t(object$scales_max_vec), object$model_hat$decomp_theo[[i]], col = col_wv[i])
+    }
+  }
+  # Plot implied WV
+  lines(t(object$scales_max_vec),object$model_hat$wv_implied, type = "l", lwd = 3, col = "#F47F24", pch = 1, cex = 1.5)
+  lines(t(object$scales_max_vec),object$model_hat$wv_implied, type = "p", lwd = 2, col = "#F47F24", pch = 1, cex = 1.5)
+
+  if(decomp == TRUE){
+    legend_names = c("Implied WV", object$model_hat$desc)
+    col_legend = c("#F47F24",col_wv)
+    p_cex_legend = c(1.5,rep(NA,U))
+  }else{
+    legend_names = c("Implied WV")
+    col_legend = c("#F47F24")
+    p_cex_legend = c(1.5)
+  }
+
+  if (is.null(legend_pos)){
+    legend_pos = "bottomleft"
+  }
+  if (add_legend_mgwmw == TRUE){
+    legend(legend_pos, legend_names, bty = "n", lwd = 1, pt.cex = 1.5, pch = p_cex_legend, col = col_legend)
+  }
+}
+
+
+
+#' @title summary method for mgmwm
+#' @method  summary mgmwm
+#' @export
+summary.mgmwm <- function(object){
 
   out = object$estimates
 
